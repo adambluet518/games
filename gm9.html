@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>NEON DRIFT SANDBOX</title>
+
+<style>
+body{
+margin:0;
+overflow:hidden;
+background:#050510;
+font-family:monospace;
+color:#0ff;
+}
+
+canvas{display:block}
+
+/* MENU */
+#menu{
+position:absolute;
+inset:0;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+background:radial-gradient(circle,#0a0a25,#000);
+}
+
+h1{
+font-size:42px;
+margin-bottom:20px;
+text-shadow:0 0 20px #0ff;
+}
+
+button{
+margin:10px;
+padding:14px 36px;
+font-size:18px;
+background:transparent;
+border:2px solid #0ff;
+color:#0ff;
+cursor:pointer;
+transition:0.2s;
+min-width:220px;
+}
+
+button:hover{
+background:#0ff;
+color:#000;
+box-shadow:0 0 25px #0ff;
+}
+
+#hud{
+position:absolute;
+top:10px;
+left:10px;
+font-size:14px;
+pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="menu">
+<h1>NEON DRIFT</h1>
+<button onclick="startGame(1)">1 PLAYER</button>
+<button onclick="startGame(2)">2 PLAYERS</button>
+<button onclick="startGame(3)">3 PLAYERS</button>
+<button onclick="startGame(4)">4 PLAYERS</button>
+</div>
+
+<div id="hud"></div>
+<canvas id="c"></canvas>
+
+<script>
+const c=document.getElementById("c");
+const ctx=c.getContext("2d");
+
+function resize(){
+c.width=innerWidth;
+c.height=innerHeight;
+}
+addEventListener("resize",resize);
+resize();
+
+/* INPUT */
+let k={};
+addEventListener("keydown",e=>k[e.key.toLowerCase()]=true);
+addEventListener("keyup",e=>k[e.key.toLowerCase()]=false);
+
+/* PARTICLES */
+const particles=[];
+function addParticle(x,y,vx,vy,color,life=30,size=3){
+particles.push({x,y,vx,vy,color,life,size});
+}
+
+/* CAR */
+function Car(x,y,color,keys,nitroKey){
+return{
+x,y,
+a:0,
+vx:0,vy:0,
+color,
+keys,
+nitroKey,
+nitro:0
+};
+}
+
+let players=[];
+
+/* START */
+function startGame(n){
+document.getElementById("menu").style.display="none";
+
+players=[];
+
+const colors=["#0ff","#f0f","#ff0","#0f0"];
+
+const controls=[
+{t:"w",l:"a",r:"d",nitro:"s"},
+{t:"t",l:"f",r:"h",nitro:"g"},
+{t:"arrowup",l:"arrowleft",r:"arrowright",nitro:"shift"},
+{t:"i",l:"j",r:"l",nitro:"k"}
+];
+
+for(let i=0;i<n;i++){
+players.push(Car(
+c.width/2+i*50,
+c.height/2,
+colors[i],
+controls[i],
+controls[i].nitro
+));
+}
+
+loop();
+}
+
+/* UPDATE */
+function update(p){
+
+const t=k[p.keys.t];
+const l=k[p.keys.l];
+const r=k[p.keys.r];
+const nitro=k[p.nitroKey];
+
+/* nitro */
+if(nitro && p.nitro<=0){
+p.nitro=60;
+}
+
+let boost=1;
+
+if(p.nitro>0){
+boost=2.4;
+p.nitro--;
+
+addParticle(
+p.x-p.vx,
+p.y-p.vy,
+(Math.random()-0.5)*4,
+(Math.random()-0.5)*4,
+"#00ffff",25,4
+);
+}
+
+/* THRUST */
+if(t){
+p.vx += Math.cos(p.a)*0.25*boost;
+p.vy += Math.sin(p.a)*0.25*boost;
+}
+
+/* friction */
+p.vx*=0.965;
+p.vy*=0.965;
+
+const spd=Math.hypot(p.vx,p.vy);
+
+/* TURN EVEN WHEN STOPPED */
+const turn=0.06;
+if(l) p.a-=turn;
+if(r) p.a+=turn;
+
+/* MOVE */
+p.x+=p.vx;
+p.y+=p.vy;
+
+/* smoke */
+if(spd>2){
+addParticle(
+p.x-Math.cos(p.a)*12,
+p.y-Math.sin(p.a)*12,
+(Math.random()-0.5)*1.5,
+(Math.random()-0.5)*1.5,
+"rgba(200,200,255,0.5)",25
+);
+}
+
+/* wrap */
+if(p.x<0)p.x=c.width;
+if(p.x>c.width)p.x=0;
+if(p.y<0)p.y=c.height;
+if(p.y>c.height)p.y=0;
+}
+
+/* COLLISION */
+function collide(a,b){
+let dx=a.x-b.x;
+let dy=a.y-b.y;
+let d=Math.hypot(dx,dy);
+
+if(d<24){
+let ang=Math.atan2(dy,dx);
+let push=(24-d)/2;
+
+a.x+=Math.cos(ang)*push;
+a.y+=Math.sin(ang)*push;
+b.x-=Math.cos(ang)*push;
+b.y-=Math.sin(ang)*push;
+}
+}
+
+/* DRAW CAR */
+function drawCar(p){
+ctx.save();
+ctx.translate(p.x,p.y);
+ctx.rotate(p.a);
+
+ctx.shadowBlur=18;
+ctx.shadowColor=p.color;
+
+/* front = right side */
+ctx.fillStyle=p.color;
+ctx.beginPath();
+ctx.moveTo(14,0);
+ctx.lineTo(-14,-10);
+ctx.lineTo(-14,10);
+ctx.closePath();
+ctx.fill();
+
+/* cockpit */
+ctx.fillStyle="#111";
+ctx.fillRect(-8,-6,10,12);
+
+/* headlights (front) */
+ctx.fillStyle="#fff";
+ctx.fillRect(10,-4,4,3);
+ctx.fillRect(10,1,4,3);
+
+/* wheels */
+ctx.fillStyle="#000";
+ctx.fillRect(-10,-11,6,5);
+ctx.fillRect(-10,6,6,5);
+ctx.fillRect(4,-11,6,5);
+ctx.fillRect(4,6,6,5);
+
+ctx.restore();
+}
+
+/* PARTICLES */
+function drawParticles(){
+for(let i=particles.length-1;i>=0;i--){
+let p=particles[i];
+
+p.x+=p.vx;
+p.y+=p.vy;
+p.life--;
+
+ctx.globalAlpha=p.life/30;
+ctx.fillStyle=p.color;
+ctx.fillRect(p.x,p.y,p.size,p.size);
+ctx.globalAlpha=1;
+
+if(p.life<=0)particles.splice(i,1);
+}
+}
+
+/* HUD */
+function hud(){
+document.getElementById("hud").innerHTML =
+players.map((p,i)=>`P${i+1} ${p.color}`).join("<br>");
+}
+
+/* LOOP */
+function loop(){
+
+ctx.fillStyle="#050510";
+ctx.fillRect(0,0,c.width,c.height);
+
+for(let p of players) update(p);
+
+for(let i=0;i<players.length;i++){
+for(let j=i+1;j<players.length;j++){
+collide(players[i],players[j]);
+}
+}
+
+drawParticles();
+for(let p of players) drawCar(p);
+
+hud();
+
+requestAnimationFrame(loop);
+}
+</script>
+
+</body>
+</html>

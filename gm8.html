@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Multi-File IDE</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Segoe UI,sans-serif;background:#1e1e1e;color:#d4d4d4;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+        header{background:#2d2d2d;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #3c3c3c}
+        h1{font-size:16px;font-weight:500}
+        .controls{display:flex;gap:10px}
+        button{padding:8px 15px;font-size:13px;font-weight:bold;border-radius:4px;cursor:pointer;border:none}
+        .run-btn{background:#2ea44f;color:#fff}.run-btn:hover{background:#2c974b}
+        .add-btn{background:#007acc;color:#fff}.add-btn:hover{background:#0062a3}
+        .main-container{display:flex;flex:1;height:calc(100vh - 53px)}
+        .editor-container{width:50%;display:flex;flex-direction:column;border-right:2px solid #3c3c3c;background:#252526}
+        .tabs-wrapper{display:flex;background:#2d2d2d;border-bottom:1px solid #3c3c3c;overflow-x:auto}
+        .tab{display:flex;align-items:center;padding:10px 15px;cursor:pointer;background:#2d2d2d;color:#969696;font-size:13px;border-right:1px solid #252526;white-space:nowrap;user-select:none}
+        .tab.active{background:#1e1e1e;color:#fff;border-bottom:2px solid #007acc}
+        .tab-name{margin-right:8px}
+        .close-tab{font-weight:bold;color:#969696;cursor:pointer;padding:0 2px}.close-tab:hover{color:#f44336}
+        .editor-panels{flex:1;position:relative}
+        .panel{display:none;width:100%;height:100%;position:absolute;top:0;left:0}.panel.active{display:block}
+        textarea{width:100%;height:100%;background:#1e1e1e;color:#d4d4d4;border:none;padding:15px;font-family:Consolas,Courier New,monospace;font-size:14px;resize:none;outline:none;line-height:1.5}
+        .preview-container{width:50%;background:#fff;display:flex;flex-direction:column}
+        .preview-header{background:#2d2d2d;color:#969696;padding:12px 15px;font-size:12px;border-bottom:1px solid #3c3c3c}
+        iframe{width:100%;flex:1;border:none;background:#fff}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Multi-File IDE</h1>
+        <div class="controls">
+            <button class="add-btn" onclick="addTab()">+ New File</button>
+            <button class="run-btn" onclick="runProject()">▶ Run</button>
+        </div>
+    </header>
+    <div class="main-container">
+        <div class="editor-container">
+            <div class="tabs-wrapper" id="tabsContainer"></div>
+            <div class="editor-panels" id="panelsContainer"></div>
+        </div>
+        <div class="preview-container">
+            <div class="preview-header">Live Preview</div>
+            <iframe id="previewFrame"></iframe>
+        </div>
+    </div>
+    <script>
+        const files = {};
+        const openTabs = [];
+        let activeTabId = null;
+        let counter = 0;
+
+        function addTab(name, content) {
+            const n = name || prompt('File name (e.g. game.js, style.css):');
+            if (!n || !n.trim()) return;
+            const id = 'f' + (++counter);
+            files[id] = { name: n.trim(), content: content || '' };
+            openTabs.push(id);
+            activeTabId = id;
+            render();
+        }
+
+        function closeTab(id) {
+            const i = openTabs.indexOf(id);
+            if (i === -1) return;
+            openTabs.splice(i, 1);
+            if (activeTabId === id) activeTabId = openTabs[Math.max(0, i - 1)] || null;
+            render();
+        }
+
+        function render() {
+            const tc = document.getElementById('tabsContainer');
+            const pc = document.getElementById('panelsContainer');
+            tc.innerHTML = '';
+            pc.innerHTML = '';
+            openTabs.forEach(id => {
+                const f = files[id];
+                const tab = document.createElement('div');
+                tab.className = 'tab' + (id === activeTabId ? ' active' : '');
+                tab.onclick = e => { if (!e.target.classList.contains('close-tab')) { activeTabId = id; render(); } };
+                const sp = document.createElement('span');
+                sp.className = 'tab-name';
+                sp.textContent = f.name;
+                tab.appendChild(sp);
+                const cb = document.createElement('span');
+                cb.className = 'close-tab';
+                cb.innerHTML = '&times;';
+                cb.onclick = e => { e.stopPropagation(); closeTab(id); };
+                tab.appendChild(cb);
+                tc.appendChild(tab);
+                const panel = document.createElement('div');
+                panel.className = 'panel' + (id === activeTabId ? ' active' : '');
+                const ta = document.createElement('textarea');
+                ta.value = f.content;
+                ta.oninput = () => { f.content = ta.value; };
+                panel.appendChild(ta);
+                pc.appendChild(panel);
+            });
+        }
+
+        function runProject() {
+            const blobUrls = {};
+            // Create blobs
+            for (const id of openTabs) {
+                const f = files[id];
+                const blob = new Blob([f.content], { type: 'text/javascript' });
+                blobUrls[f.name] = URL.createObjectURL(blob);
+            }
+            // Rewrite JS imports
+            const rewritten = {};
+            for (const [name, url] of Object.entries(blobUrls)) {
+                if (name.endsWith('.js')) {
+                    let content = files[Object.keys(files).find(k => files[k].name === name)].content;
+                    content = content.replace(/(from\s+['"])(\.\/[^'"]+)(['"])/g, (_, pre, path, post) => {
+                        const resolved = path.replace('./', '');
+                        return blobUrls[resolved] ? pre + blobUrls[resolved] + post : _;
+                    });
+                    content = content.replace(/(import\s+['"])(\.\/[^'"]+)(['"])/g, (_, pre, path, post) => {
+                        const resolved = path.replace('./', '');
+                        return blobUrls[resolved] ? pre + blobUrls[resolved] + post : _;
+                    });
+                    const newBlob = new Blob([content], { type: 'text/javascript' });
+                    rewritten[name] = URL.createObjectURL(newBlob);
+                }
+            }
+            Object.assign(blobUrls, rewritten);
+            // Build HTML
+            let html = '';
+            const htmlId = openTabs.find(id => {
+                const n = files[id].name.toLowerCase();
+                return n.endsWith('.html') || n.endsWith('.htm');
+            });
+            if (htmlId) {
+                html = files[htmlId].content;
+            } else {
+                html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview</title></head><body></body></html>';
+            }
+            // Replace script src
+            html = html.replace(/<script\s+type="module"\s+src="([^"]+)"/g, (m, src) => {
+                const resolved = src.replace('./', '');
+                return blobUrls[resolved] ? `<script type="module" src="${blobUrls[resolved]}"` : m;
+            });
+            // Replace link href
+            html = html.replace(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g, (m, href) => {
+                const resolved = href.replace('./', '');
+                return blobUrls[resolved] ? `<link rel="stylesheet" href="${blobUrls[resolved]}"` : m;
+            });
+            // Also replace already-rewritten blob URLs for JS
+            for (const [name, url] of Object.entries(rewritten)) {
+                const origUrl = blobUrls[name];
+                if (origUrl && origUrl !== url) {
+                    html = html.replace(origUrl, url);
+                }
+            }
+            const frame = document.getElementById('previewFrame');
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            doc.open();
+            doc.write(html);
+            doc.close();
+        }
+
+        // Start with one empty HTML file
+        addTab('index.html', '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>My Project</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>');
+    </script>
+</body>
+</html>

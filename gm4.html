@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Typing Arcade: WORDSTORM</title>
+<style>
+    body{
+        margin:0;
+        overflow:hidden;
+        font-family:'Segoe UI',Arial,sans-serif;
+        background:#0a0c1a;
+        color:#e0f0ff;
+    }
+    #bg{
+        position:fixed;
+        top:0; left:0; width:100%; height:100%;
+        background: 
+            linear-gradient(rgba(30,40,80,0.3), rgba(10,12,26,0.8)),
+            repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(100,150,255,0.03) 41px);
+        z-index:-1;
+        pointer-events:none;
+    }
+    #stars{
+        position:fixed;
+        top:0; left:0; width:100%; height:100%;
+        background: transparent url('data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27><circle cx=%2720%27 cy=%2720%27 r=%271%27 fill=%27%23fff%27/><circle cx=%2780%27 cy=%2740%27 r=%271.5%27 fill=%27%23fff%27/><circle cx=%2740%27 cy=%2780%27 r=%271%27 fill=%27%23fff%27/></svg>') repeat;
+        opacity:0.4;
+        z-index:-1;
+        animation: starMove 80s linear infinite;
+    }
+    @keyframes starMove{ from{background-position:0 0} to{background-position:100px 100px} }
+
+    #startScreen{
+        position:fixed;
+        top:0; left:0; width:100%; height:100%;
+        background:rgba(10,12,26,0.95);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        flex-direction:column;
+        z-index:100;
+        text-align:center;
+    }
+    #title{
+        font-size:4rem;
+        font-weight:bold;
+        background:linear-gradient(90deg,#a5b4fc,#c4d0ff);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+        margin:0 0 10px 0;
+        text-shadow:0 0 30px #6366f1;
+    }
+    .subtitle{
+        font-size:1.3rem;
+        color:#94a3b8;
+        margin-bottom:30px;
+    }
+    #lore{
+        max-width:500px;
+        background:rgba(15,23,42,0.8);
+        padding:20px;
+        border-radius:12px;
+        border:1px solid #64748b;
+        margin-bottom:40px;
+        line-height:1.5;
+    }
+    button{
+        padding:14px 40px;
+        font-size:1.4rem;
+        background:#6366f1;
+        color:white;
+        border:none;
+        border-radius:50px;
+        cursor:pointer;
+        transition:all 0.2s;
+        box-shadow:0 0 20px #6366f1;
+    }
+    button:hover{
+        transform:scale(1.05);
+        box-shadow:0 0 30px #818cf8;
+    }
+
+    #ui{
+        position:fixed;
+        top:15px;
+        left:15px;
+        background:rgba(15,23,42,0.85);
+        padding:12px 18px;
+        border-radius:12px;
+        border:1px solid #475569;
+        z-index:10;
+        font-size:1.05rem;
+        line-height:1.4;
+    }
+    #wpm{
+        color:#67e8f9;
+        font-weight:bold;
+    }
+
+    #input{
+        position:fixed;
+        bottom:30px;
+        left:50%;
+        transform:translateX(-50%);
+        padding:14px 24px;
+        width:380px;
+        border:none;
+        border-radius:9999px;
+        font-size:18px;
+        background:#1e2937;
+        color:white;
+        box-shadow:0 0 25px rgba(99,102,241,0.5);
+        outline:none;
+    }
+
+    .enemy{
+        position:absolute;
+        padding:8px 18px;
+        background:#e11d48;
+        border-radius:12px;
+        font-weight:600;
+        box-shadow:0 4px 15px rgba(225,29,72,0.6);
+        user-select:none;
+        white-space:nowrap;
+        display:flex;
+        align-items:center;
+        gap:6px;
+    }
+    .enemy.big{
+        background:#7c3aed;
+        padding:12px 26px;
+        font-size:1.1rem;
+        box-shadow:0 6px 25px rgba(124,58,237,0.7);
+    }
+
+    .explode{
+        animation:explodeAnim 0.4s forwards;
+    }
+    @keyframes explodeAnim{
+        0%{transform:scale(1); opacity:1;}
+        100%{transform:scale(2.5); opacity:0;}
+    }
+
+    .freezeEffect{
+        animation:freezeFlash 0.4s;
+    }
+    @keyframes freezeFlash{
+        0%{filter:brightness(1) hue-rotate(0deg);}
+        50%{filter:brightness(1.6) hue-rotate(200deg);}
+        100%{filter:brightness(1) hue-rotate(0deg);}
+    }
+
+    #gameOverScreen{
+        position:fixed;
+        top:0; left:0; width:100%; height:100%;
+        background:rgba(10,12,26,0.97);
+        display:none;
+        align-items:center;
+        justify-content:center;
+        flex-direction:column;
+        z-index:200;
+    }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="stars"></div>
+
+<div id="startScreen">
+    <h1 id="title">WORDSTORM</h1>
+    <p class="subtitle">TYPE OR BE DELETED</p>
+    <div id="lore">
+        Year 2147.<br>
+        A rogue neural network has breached the Grid.<br>
+        Its weapon: living words and sentences that devour data.<br><br>
+        You are the last Typist.<br>
+        Destroy the invaders before they reach the Core.
+    </div>
+    <button onclick="startGame()">START MISSION</button>
+</div>
+
+<div id="ui">
+    ❤️ Health: <span id="health">100</span><br>
+    ⭐ Score: <span id="score">0</span><br>
+    ⚡ WPM: <span id="wpm">0</span><br>
+    🏆 High: <span id="high">0</span>
+</div>
+
+<input id="input" placeholder="type to destroy..." autofocus>
+
+<div id="gameOverScreen">
+    <h1>GAME OVER</h1>
+    <p style="font-size:1.5rem;margin:20px 0;">Final Score: <span id="finalScore">0</span></p>
+    <button onclick="location.reload()">RESTART MISSION</button>
+</div>
+
+<script>
+let enemies = [];
+let score = 0;
+let health = 100;
+let frozen = false;
+let gameStarted = false;
+let startTime = 0;
+let wordsTyped = 0;
+let high = 0;
+
+const input = document.getElementById("input");
+
+// Safe localStorage
+try {
+    const saved = localStorage.getItem("typingHigh");
+    if (saved) high = parseInt(saved);
+} catch(e) {}
+document.getElementById("high").textContent = high;
+
+const words = ["fire","storm","code","pixel","speed","ninja","laser","robot","dragon","void","ghost","blade","shadow","pulse","neon"];
+const sentences = [
+    "the quick brown fox jumps",
+    "typing games are addictive",
+    "javascript powers the web",
+    "defeat the word invaders",
+    "stay focused and survive",
+    "protect the digital core"
+];
+
+/* SOUND */
+function beep(freq, duration=60){
+    try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.type="sawtooth";
+        osc.frequency.value = freq;
+        osc.connect(ctx.destination);
+        osc.start();
+        setTimeout(()=>osc.stop(), duration);
+    }catch(e){}
+}
+
+/* SPAWN */
+function spawnEnemy(){
+    if(!gameStarted) return;
+    const el = document.createElement("div");
+    el.className = "enemy";
+    let text;
+    let isSentence = Math.random() < 0.3;
+    if(isSentence){
+        text = sentences[Math.floor(Math.random()*sentences.length)];
+        el.classList.add("big");
+    } else {
+        text = words[Math.floor(Math.random()*words.length)];
+    }
+    el.textContent = text;
+    el.style.left = Math.random() * (window.innerWidth - 220) + "px";
+    el.style.top = "-60px";
+    document.body.appendChild(el);
+    enemies.push({
+        el,
+        text,
+        y: -60,
+        speed: 0.55 + Math.random()*0.75,
+        isSentence
+    });
+}
+
+/* UPDATE LOOP */
+function update(){
+    if(!gameStarted) {
+        requestAnimationFrame(update);
+        return;
+    }
+    enemies.forEach((e,i)=>{
+        if(!frozen){
+            e.y += e.speed;
+        }
+        e.el.style.top = e.y + "px";
+        if(e.y > window.innerHeight + 20){
+            e.el.remove();
+            enemies.splice(i,1);
+            health = Math.max(0, health - 8);
+            document.getElementById("health").textContent = health;
+            beep(140, 120);
+            if(health <= 0) gameOver();
+        }
+    });
+    requestAnimationFrame(update);
+}
+
+/* WPM CALC */
+function updateWPM(){
+    if(!gameStarted || !startTime) return;
+    const minutes = (Date.now() - startTime) / 60000;
+    if(minutes < 0.05) return;
+    const wpm = Math.floor((wordsTyped / minutes) * 1.0);
+    document.getElementById("wpm").textContent = wpm;
+}
+
+/* INPUT */
+input.addEventListener("input", ()=>{
+    if(!gameStarted) return;
+    const val = input.value.trim().toLowerCase();
+    for(let i = enemies.length - 1; i >= 0; i--){
+        const e = enemies[i];
+        if(val === e.text.toLowerCase()){
+            e.el.classList.add("explode");
+            setTimeout(()=>{ 
+                if(e.el && e.el.parentNode) e.el.remove();
+            }, 300);
+            
+            enemies.splice(i,1);
+            score += Math.floor(e.text.length * 1.8);
+            health = Math.min(100, health + (e.isSentence ? 4 : 1));
+            wordsTyped++;
+            
+            document.getElementById("score").textContent = score;
+            document.getElementById("health").textContent = health;
+            
+            beep(e.isSentence ? 880 : 680, 70);
+            input.value = "";
+            
+            if(e.isSentence){
+                activateFreeze();
+            }
+            break;
+        }
+    }
+});
+
+/* FREEZE POWER */
+function activateFreeze(){
+    frozen = true;
+    document.body.classList.add("freezeEffect");
+    setTimeout(()=>{
+        frozen = false;
+        document.body.classList.remove("freezeEffect");
+    }, 4800);
+}
+
+/* GAME OVER */
+function gameOver(){
+    gameStarted = false;
+    if(score > high){
+        high = score;
+        try {
+            localStorage.setItem("typingHigh", high);
+        } catch(e) {}
+    }
+    document.getElementById("finalScore").textContent = score;
+    document.getElementById("gameOverScreen").style.display = "flex";
+}
+
+/* START GAME */
+function startGame(){
+    document.getElementById("startScreen").style.display = "none";
+    gameStarted = true;
+    startTime = Date.now();
+    score = 0;
+    health = 100;
+    wordsTyped = 0;
+    enemies = [];
+    document.getElementById("score").textContent = "0";
+    document.getElementById("health").textContent = "100";
+    document.getElementById("wpm").textContent = "0";
+    input.value = "";
+    input.focus();
+    
+    for(let i=0; i<3; i++){
+        setTimeout(spawnEnemy, i*400);
+    }
+}
+
+/* SPAWN LOOP */
+setInterval(()=>{
+    if(gameStarted) spawnEnemy();
+}, 1350);
+
+/* WPM LOOP */
+setInterval(updateWPM, 1200);
+
+/* START */
+update();
+</script>
+</body>
+</html>

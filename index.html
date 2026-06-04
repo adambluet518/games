@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Game Launcher</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #121214;
+            color: #e1e1e6;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            width: 300px;
+            background-color: #1a1a1e;
+            border-right: 2px solid #29292e;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4ea8de;
+            border-bottom: 1px solid #29292e;
+            text-align: center;
+        }
+
+        .games-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* Game Button Styling */
+        .game-btn {
+            width: 100%;
+            background-color: #202024;
+            border: 1px solid #29292e;
+            color: #e1e1e6;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-btn:hover {
+            background-color: #29292e;
+            border-color: #4ea8de;
+            transform: translateX(4px);
+        }
+
+        .game-btn.active {
+            background-color: #4ea8de;
+            color: #121214;
+            font-weight: bold;
+            border-color: #4ea8de;
+        }
+
+        .game-genre {
+            font-size: 0.75rem;
+            color: #8d8d99;
+            margin-top: 4px;
+        }
+
+        .game-btn.active .game-genre {
+            color: #202024;
+        }
+
+        /* Main Viewport / Iframe styling */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #09090a;
+            position: relative;
+        }
+
+        #game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #09090a;
+            display: none; /* Hidden until a game is selected */
+        }
+
+        /* Placeholder view when no game is running */
+        .placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #8d8d99;
+        }
+
+        .placeholder h2 {
+            color: #e1e1e6;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">🕹️ Game Launcher</div>
+        <div class="games-list">
+            <button class="game-btn" onclick="loadGame('gm1.html', this)">
+                <span>Block Blast</span>
+                <span class="game-genre">Puzzle</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm2.html', this)">
+                <span>Cookie Clicker</span>
+                <span class="game-genre">Idle / Clicker</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm3.html', this)">
+                <span>Depths of Aeloria</span>
+                <span class="game-genre">Text-Based RPG</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm4.html', this)">
+                <span>Wordstorm</span>
+                <span class="game-genre">Word / Puzzle</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm5.html', this)">
+                <span>Paint Editor</span>
+                <span class="game-genre">Utility / Art</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm6.html', this)">
+                <span>Dragon Quest</span>
+                <span class="game-genre">2D Platformer</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm7.html', this)">
+                <span>AdamCraft</span>
+                <span class="game-genre">2D Paper Minecraft</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm8.html', this)">
+                <span>Code IDE</span>
+                <span class="game-genre">Utility / Dev</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm9.html', this)">
+                <span>Neon Drift</span>
+                <span class="game-genre">Sandbox Racer</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm10.html', this)">
+                <span>The Veil</span>
+                <span class="game-genre">3D FPS</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm11.html', this)">
+                <span>Street Racer</span>
+                <span class="game-genre">3D Racing</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm12.html', this)">
+                <span>3D Dino Game</span>
+                <span class="game-genre">3D Endless Runner</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm13.html', this)">
+                <span>Space Shooter</span>
+                <span class="game-genre">3D Space Shooter</span>
+            </button>
+            <button class="game-btn" onclick="loadGame('gm14.html', this)">
+                <span>Minecraft Clone</span>
+                <span class="game-genre">3D Sandbox</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="placeholder" id="placeholder-text">
+            <h2>Welcome to Your Launcher</h2>
+            <p>Select a game from the sidebar to start playing!</p>
+        </div>
+        <iframe id="game-frame" src="" allow="fullscreen; autoplay; pointer-lock"></iframe>
+    </div>
+
+    <script>
+        function loadGame(gameUrl, buttonElement) {
+            const iframe = document.getElementById('game-frame');
+            const placeholder = document.getElementById('placeholder-text');
+            
+            // Set the iframe source to the selected game file
+            iframe.src = gameUrl;
+            
+            // Show the iframe and hide placeholder text
+            iframe.style.display = 'block';
+            placeholder.style.display = 'none';
+
+            // Update active styling on sidebar buttons
+            const buttons = document.querySelectorAll('.game-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            buttonElement.classList.add('active');
+        }
+    </script>
+</body>
+</html>

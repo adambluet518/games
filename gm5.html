@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paint Editor</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#1b1b1b;
+    font-family:Arial, sans-serif;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+}
+
+.toolbar{
+    background:#2b2b2b;
+    padding:10px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    border-bottom:2px solid #444;
+    flex-wrap:wrap;
+}
+
+button,
+input[type="color"],
+input[type="range"]{
+    background:#3a3a3a;
+    border:none;
+    color:white;
+    padding:10px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#555;
+}
+
+label{
+    color:white;
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+
+canvas{
+    flex:1;
+    background:white;
+    cursor:crosshair;
+}
+
+#importFile{
+    display:none;
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+
+    <button id="clearBtn">🗑 Clear</button>
+
+    <button id="exportBtn">💾 Export</button>
+
+    <label for="importFile">
+        📂 Import
+    </label>
+    <input type="file" id="importFile" accept="image/*">
+
+    <label>
+        🎨
+        <input type="color" id="colorPicker" value="#000000">
+    </label>
+
+    <label>
+        🖌
+        <input type="range" id="brushSize" min="1" max="50" value="5">
+    </label>
+
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const clearBtn = document.getElementById("clearBtn");
+const exportBtn = document.getElementById("exportBtn");
+const importFile = document.getElementById("importFile");
+const colorPicker = document.getElementById("colorPicker");
+const brushSize = document.getElementById("brushSize");
+
+let drawing = false;
+
+function resizeCanvas(){
+
+    const oldData = ctx.getImageData(0,0,canvas.width,canvas.height);
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - document.querySelector(".toolbar").offsetHeight;
+
+    if(oldData.width > 0 && oldData.height > 0){
+        ctx.putImageData(oldData,0,0);
+    }
+}
+
+resizeCanvas();
+
+window.addEventListener("resize", resizeCanvas);
+
+canvas.addEventListener("mousedown",(e)=>{
+    drawing = true;
+
+    ctx.beginPath();
+    ctx.moveTo(
+        e.clientX,
+        e.clientY - document.querySelector(".toolbar").offsetHeight
+    );
+});
+
+canvas.addEventListener("mouseup",()=>{
+    drawing = false;
+    ctx.beginPath();
+});
+
+canvas.addEventListener("mouseleave",()=>{
+    drawing = false;
+    ctx.beginPath();
+});
+
+canvas.addEventListener("mousemove",draw);
+
+function draw(e){
+
+    if(!drawing) return;
+
+    ctx.lineWidth = brushSize.value;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = colorPicker.value;
+
+    ctx.lineTo(
+        e.clientX,
+        e.clientY - document.querySelector(".toolbar").offsetHeight
+    );
+
+    ctx.stroke();
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        e.clientX,
+        e.clientY - document.querySelector(".toolbar").offsetHeight
+    );
+}
+
+clearBtn.addEventListener("click",()=>{
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+});
+
+exportBtn.addEventListener("click",()=>{
+
+    const link = document.createElement("a");
+
+    link.download = "painting.png";
+    link.href = canvas.toDataURL("image/png");
+
+    link.click();
+
+});
+
+importFile.addEventListener("change",(e)=>{
+
+    const file = e.target.files[0];
+
+    if(!file) return;
+
+    const img = new Image();
+
+    img.onload = ()=>{
+
+        // Clear canvas
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        // Keep aspect ratio
+        const canvasRatio = canvas.width / canvas.height;
+        const imgRatio = img.width / img.height;
+
+        let drawWidth;
+        let drawHeight;
+
+        if(imgRatio > canvasRatio){
+
+            drawWidth = canvas.width;
+            drawHeight = canvas.width / imgRatio;
+
+        }else{
+
+            drawHeight = canvas.height;
+            drawWidth = canvas.height * imgRatio;
+
+        }
+
+        // Center image
+        const x = (canvas.width - drawWidth) / 2;
+        const y = (canvas.height - drawHeight) / 2;
+
+        ctx.drawImage(img,x,y,drawWidth,drawHeight);
+
+    };
+
+    img.src = URL.createObjectURL(file);
+
+});
+</script>
+
+</body>
+</html>

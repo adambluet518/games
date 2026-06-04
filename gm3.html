@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Depths of Aeloria</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0608; --bg2:#110d0f; --bg3:#1a1218; --bg4:#221820;
+  --border:#3a2030; --gold:#d4a843; --gold2:#f0c060;
+  --red:#c0392b; --red2:#e74c3c; --green:#27ae60; --blue:#2980b9;
+  --purple:#9b59b6; --teal:#1abc9c;
+  --text:#e8d8c0; --dim:#7a6858; --bright:#f5e6cc;
+  --hp:#c0392b; --mp:#2980b9; --xp:#27ae60;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'IM Fell English',serif;overflow:hidden}
+
+/* ── INTRO ── */
+#intro-screen{
+  display:flex;align-items:center;justify-content:center;
+  height:100vh;
+  background:radial-gradient(ellipse at 50% 40%,#160920 0%,#050208 65%,#000 100%);
+  position:relative;overflow:hidden;
+}
+.stars{position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.75) 0,transparent 100%),
+    radial-gradient(1px 1px at 28% 8%, rgba(255,255,255,.55) 0,transparent 100%),
+    radial-gradient(1px 1px at 47% 22%,rgba(255,255,255,.6)  0,transparent 100%),
+    radial-gradient(1px 1px at 63% 5%, rgba(255,255,255,.5)  0,transparent 100%),
+    radial-gradient(1px 1px at 80% 14%,rgba(255,255,255,.65) 0,transparent 100%),
+    radial-gradient(1px 1px at 92% 30%,rgba(255,255,255,.45) 0,transparent 100%),
+    radial-gradient(1px 1px at 5%  60%,rgba(255,255,255,.55) 0,transparent 100%),
+    radial-gradient(1px 1px at 35% 75%,rgba(255,255,255,.4)  0,transparent 100%),
+    radial-gradient(1px 1px at 70% 68%,rgba(255,255,255,.5)  0,transparent 100%),
+    radial-gradient(1px 1px at 88% 80%,rgba(255,255,255,.45) 0,transparent 100%),
+    radial-gradient(1.5px 1.5px at 20%55%,rgba(210,190,255,.3) 0,transparent 100%),
+    radial-gradient(1.5px 1.5px at 55%40%,rgba(255,210,160,.25) 0,transparent 100%);
+  animation:twinkle 5s ease-in-out infinite alternate;
+}
+@keyframes twinkle{from{opacity:.5}to{opacity:1}}
+.intro-inner{position:relative;z-index:1;max-width:680px;padding:40px 32px;text-align:center;animation:rise 1.6s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.ornament{color:var(--gold);font-size:.82rem;letter-spacing:5px;margin:6px 0}
+.game-title{font-family:'Cinzel Decorative',cursive;font-size:2.8rem;color:var(--gold2);
+  text-shadow:0 0 28px rgba(212,168,67,.65),0 0 56px rgba(212,168,67,.3);line-height:1.1;margin:6px 0}
+.game-sub{font-family:'Cinzel',serif;font-size:.95rem;color:var(--dim);letter-spacing:3px;margin-bottom:28px}
+.lore-box{background:rgba(0,0,0,.55);border:1px solid var(--border);border-radius:4px;
+  padding:22px 26px;text-align:left;margin-bottom:28px;line-height:1.85;font-size:.95rem}
+.lore-box p{margin-bottom:10px}.lore-box p:last-child{margin-bottom:0}
+.lore-box em{color:var(--gold);font-style:italic}.lore-box strong{color:var(--gold2)}
+
+/* ── NAME SCREEN ── */
+#name-screen{display:none;align-items:center;justify-content:center;height:100vh;
+  background:radial-gradient(ellipse at 50% 80%,#0c1a0e 0%,#050308 70%)}
+.name-inner{max-width:780px;width:100%;padding:32px;text-align:center;animation:rise .8s ease both}
+.name-inner h2{font-family:'Cinzel Decorative',cursive;font-size:1.7rem;color:var(--gold);margin-bottom:22px}
+.class-row{display:flex;gap:10px;justify-content:center;margin-bottom:22px;flex-wrap:wrap}
+.cls{background:var(--bg4);border:2px solid var(--border);border-radius:6px;padding:14px 12px;
+  cursor:pointer;transition:all .2s;min-width:152px;text-align:center}
+.cls:hover{border-color:var(--gold);transform:translateY(-2px)}
+.cls.sel{border-color:var(--gold);box-shadow:0 0 14px rgba(212,168,67,.35)}
+.cls-icon{font-size:1.6rem;margin-bottom:5px}
+.cls-name{font-family:'Cinzel',serif;color:var(--gold);font-size:.88rem;margin-bottom:5px}
+.cls-desc{font-size:.67rem;color:var(--dim);line-height:1.5}
+.name-input{display:block;width:100%;max-width:320px;margin:0 auto 20px;
+  background:var(--bg4);border:2px solid var(--border);color:var(--bright);
+  font-family:'Cinzel',serif;font-size:1rem;padding:11px 16px;border-radius:4px;
+  text-align:center;outline:none;transition:border-color .2s}
+.name-input:focus{border-color:var(--gold)}.name-input::placeholder{color:var(--dim)}
+
+/* ── GAME SCREEN ── */
+#game-screen{display:none;height:100vh;width:100vw;grid-template-columns:1fr 300px;grid-template-rows:100%}
+
+/* ── MAIN AREA ── */
+.main-area{display:flex;flex-direction:column;height:100vh;overflow:hidden;border-right:1px solid var(--border)}
+
+/* LOCATION HEADER */
+.loc-header{background:var(--bg3);border-bottom:1px solid var(--border);
+  padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.loc-name{font-family:'Cinzel',serif;font-size:.88rem;color:var(--gold);font-weight:600}
+.loc-badge{font-family:'Share Tech Mono',monospace;font-size:.65rem;
+  padding:2px 8px;border-radius:2px;letter-spacing:2px;background:var(--red);color:var(--bright)}
+.loc-badge.village{background:#1a4a1a}.loc-badge.dungeon{background:#1a1a4a}
+.loc-badge.abyss{background:#2a0a2a}.loc-badge.boss{background:#5a0a0a}
+
+/* NARRATIVE BOX */
+.narrative{flex:1;overflow-y:auto;padding:18px 20px;
+  background:linear-gradient(180deg,#0d090c 0%,#080508 100%);
+  font-size:.95rem;line-height:1.85}
+.narrative::-webkit-scrollbar{width:4px}
+.narrative::-webkit-scrollbar-track{background:var(--bg)}
+.narrative::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.narrative::-webkit-scrollbar-thumb:hover{background:#6a4a5a}
+
+/* text colours */
+.t-lore  {color:var(--text);font-style:italic}
+.t-system{color:#9080a8;font-style:italic;font-size:.88rem}
+.t-combat{color:#d08070}
+.t-loot  {color:var(--gold)}
+.t-heal  {color:var(--teal)}
+.t-boss  {color:#ff7060;font-weight:bold}
+.t-npc   {color:#80b8d8}
+.t-sep   {color:var(--border);font-size:.7rem;text-align:center;letter-spacing:3px;margin:8px 0;display:block}
+.t-warn  {color:#ff8060}
+
+/* narrative entry */
+.n-entry{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(58,32,48,.35)}
+.n-entry:last-child{border-bottom:none;margin-bottom:0}
+
+/* COMBAT PANEL */
+.combat-panel{background:linear-gradient(180deg,#1a0606 0%,#0d0408 100%);
+  border-top:2px solid var(--red);padding:14px 16px;flex-shrink:0;display:none}
+.fighters{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.fighter{flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:5px;padding:10px 12px}
+.f-name{font-family:'Cinzel',serif;font-size:.75rem;color:var(--dim);margin-bottom:4px}
+.f-icon{font-size:1.8rem;margin-bottom:5px;line-height:1}
+.hpbar-wrap{background:#1a0808;border-radius:2px;height:7px;margin:5px 0;overflow:hidden}
+.hpbar{height:100%;border-radius:2px;transition:width .4s ease}
+.hpbar.player{background:var(--hp)}.hpbar.enemy{background:#8b4513}
+.f-hp{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--dim)}
+.f-status{font-size:.68rem;min-height:14px;margin-top:2px;color:#d0b090}
+.vs{font-size:1.2rem;color:var(--red);flex-shrink:0;text-align:center}
+.cbtn-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.cbtn{background:linear-gradient(135deg,#280808,#380e0e);border:1px solid var(--red);
+  color:var(--text);font-family:'Cinzel',serif;font-size:.75rem;padding:8px 11px;
+  cursor:pointer;border-radius:4px;transition:all .2s;flex:1;min-width:84px}
+.cbtn:hover{border-color:var(--red2);color:var(--red2);box-shadow:0 0 8px rgba(192,57,43,.4)}
+.cbtn.flee{border-color:#6a5020}.cbtn.flee:hover{border-color:var(--gold);color:var(--gold)}
+.clog{font-family:'Share Tech Mono',monospace;font-size:.74rem;color:var(--dim);
+  max-height:58px;overflow-y:auto;background:rgba(0,0,0,.3);padding:5px 7px;border-radius:3px}
+.clog p{margin-bottom:1px}.clog .dmg{color:#d87060}.clog .crit{color:#ff4040;font-weight:bold}
+.clog .miss{color:#605050}.clog .spc{color:var(--purple)}.clog .hl{color:var(--teal)}.clog .bs{color:#ff8060}
+
+/* ACTION BUTTONS */
+.actions-box{background:var(--bg3);border-top:1px solid var(--border);padding:10px 14px;flex-shrink:0}
+.action-title{font-family:'Cinzel',serif;font-size:.65rem;color:var(--dim);letter-spacing:2px;margin-bottom:7px;text-transform:uppercase}
+.action-grid{display:flex;flex-direction:column;gap:4px}
+.abtn{background:var(--bg4);border:1px solid var(--border);color:var(--text);
+  font-family:'IM Fell English',serif;font-size:.88rem;padding:8px 14px;
+  cursor:pointer;border-radius:3px;text-align:left;transition:all .18s}
+.abtn:hover{border-color:var(--gold);color:var(--gold);background:rgba(139,105,20,.12)}
+.abtn.danger{border-color:#3a1010}.abtn.special{border-color:#2a1a4a}
+.boss-warn{background:linear-gradient(135deg,#1a0000,#260606);
+  border:1px solid var(--red);border-radius:4px;padding:9px 12px;margin-bottom:6px;
+  color:#ff7060;font-family:'Cinzel',serif;font-size:.82rem;text-align:center;
+  animation:pulse-warn 1.5s ease infinite alternate}
+@keyframes pulse-warn{from{box-shadow:none}to{box-shadow:0 0 10px rgba(192,57,43,.4)}}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--bg2);display:flex;flex-direction:column;overflow:hidden;height:100vh}
+
+/* HERO CARD */
+.hero-card{background:var(--bg3);border-bottom:1px solid var(--border);padding:14px 14px 10px;flex-shrink:0}
+.hero-portrait{font-size:2.2rem;margin-bottom:2px;line-height:1}
+.hero-name{font-family:'Cinzel',serif;font-size:.95rem;color:var(--gold);font-weight:600}
+.hero-class{font-size:.68rem;color:var(--dim);font-style:italic;margin-bottom:9px}
+.sbar{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.slbl{font-family:'Cinzel',serif;font-size:.6rem;color:var(--dim);width:18px;text-align:right}
+.strack{flex:1;background:#0d0508;height:6px;border-radius:2px;overflow:hidden}
+.sfill{height:100%;border-radius:2px;transition:width .3s}
+.sfill.hp{background:var(--hp)}.sfill.mp{background:var(--mp)}.sfill.xp{background:var(--xp)}
+.sval{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--dim);width:62px;text-align:right}
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:7px}
+.mstat{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:3px;
+  padding:3px 5px;font-family:'Share Tech Mono',monospace;font-size:.7rem;text-align:center}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tabbtn{flex:1;background:transparent;border:none;border-right:1px solid var(--border);
+  color:var(--dim);font-family:'Cinzel',serif;font-size:.62rem;padding:7px 2px;cursor:pointer;transition:all .2s}
+.tabbtn:last-child{border-right:none}.tabbtn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.tabbtn.act{color:var(--gold);background:rgba(139,105,20,.15)}
+.tabpanel{display:none;flex:1;overflow-y:auto;padding:8px}
+.tabpanel.act{display:block}
+.tabpanel::-webkit-scrollbar{width:3px}
+.tabpanel::-webkit-scrollbar-thumb{background:var(--border)}
+
+/* INVENTORY */
+.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.icell{background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .14s;font-size:1.1rem;position:relative;min-height:44px}
+.icell:hover:not(.empty){border-color:var(--gold);transform:scale(1.06)}
+.icell.empty{opacity:.22;cursor:default}.icell.weapon{border-color:#3a2008}
+.icell.armor{border-color:#082038}.icell.potion{border-color:#083820}.icell.accessory{border-color:#20083a}
+.icell.legendary{border-color:#8b6914;box-shadow:0 0 5px rgba(139,105,20,.35)}
+.iqty{position:absolute;bottom:1px;right:3px;font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--gold)}
+
+/* EQUIP */
+.eslot{background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  padding:8px 10px;margin-bottom:5px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:8px}
+.eslot:hover{border-color:#6a4a20}
+.elbl{font-family:'Cinzel',serif;font-size:.6rem;color:var(--dim);width:48px;flex-shrink:0}
+.eitem{font-size:.78rem;color:var(--text)}
+.ebonus{font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--dim);
+  padding:7px;background:rgba(0,0,0,.3);border-radius:3px;line-height:1.7;margin-top:4px}
+
+/* QUESTS */
+.qitem{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:8px 10px;margin-bottom:5px}
+.qtitle{font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold);margin-bottom:2px}
+.qdesc{font-size:.7rem;color:var(--dim);line-height:1.5}
+.qstat{font-size:.63rem;margin-top:3px}.qstat.done{color:var(--teal)}.qstat.act{color:var(--gold)}
+
+/* MODALS */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.88);
+  display:flex;align-items:center;justify-content:center;z-index:100;animation:fadein .2s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.modal{background:var(--bg3);border:2px solid #8b6914;border-radius:6px;
+  padding:24px;min-width:340px;max-width:580px;max-height:88vh;overflow-y:auto;
+  box-shadow:0 4px 32px rgba(0,0,0,.8),0 0 14px rgba(212,168,67,.2);animation:slideup .22s ease}
+@keyframes slideup{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mtitle{font-family:'Cinzel Decorative',cursive;font-size:1.05rem;color:var(--gold);
+  text-align:center;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:9px}
+
+/* SHOP */
+.sitem{background:var(--bg4);border:1px solid var(--border);border-radius:3px;
+  padding:9px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .18s;margin-bottom:5px}
+.sitem:hover{border-color:var(--gold);background:rgba(139,105,20,.1)}
+.sicon{font-size:1.3rem;flex-shrink:0}.sinfo{flex:1}
+.sname{font-family:'Cinzel',serif;font-size:.82rem;color:var(--bright)}
+.sdesc{font-size:.68rem;color:var(--dim);margin-top:1px}
+.sprice{font-family:'Share Tech Mono',monospace;color:var(--gold);font-size:.82rem;white-space:nowrap}
+.mfooter{display:flex;justify-content:space-between;align-items:center;
+  margin-top:14px;border-top:1px solid var(--border);padding-top:10px;
+  font-family:'Share Tech Mono',monospace;color:var(--gold)}
+
+/* NPC */
+.npc-port{font-size:3rem;text-align:center;margin-bottom:6px}
+.npc-nm{font-family:'Cinzel Decorative',cursive;font-size:.95rem;color:var(--gold);text-align:center;margin-bottom:12px}
+.npc-dial{font-size:.88rem;line-height:1.8;color:var(--text);
+  background:rgba(0,0,0,.4);padding:14px;border-radius:3px;
+  border-left:3px solid #6a4a14;margin-bottom:12px;font-style:italic}
+.npc-opts{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.nopt{background:var(--bg4);border:1px solid var(--border);color:var(--text);
+  font-family:'IM Fell English',serif;font-size:.85rem;padding:7px 12px;
+  cursor:pointer;border-radius:3px;transition:all .18s;text-align:left}
+.nopt:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ITEM MODAL */
+.imic{font-size:2.4rem;text-align:center;margin-bottom:5px}
+.imnm{font-family:'Cinzel',serif;font-size:.98rem;color:var(--gold);text-align:center;margin-bottom:6px}
+.imdc{font-size:.82rem;color:var(--dim);text-align:center;margin-bottom:10px;font-style:italic}
+.imst{font-family:'Share Tech Mono',monospace;font-size:.73rem;color:var(--text);
+  background:rgba(0,0,0,.4);padding:9px;border-radius:3px;margin-bottom:12px;line-height:1.75;white-space:pre}
+.im-acts{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.iact{background:var(--bg4);border:1px solid #6a4a14;color:var(--gold);
+  font-family:'Cinzel',serif;font-size:.75rem;padding:6px 13px;cursor:pointer;border-radius:3px;transition:all .18s}
+.iact:hover{background:rgba(139,105,20,.2)}
+
+/* LEVEL UP / VICTORY / GAMEOVER */
+.lvltitle{font-family:'Cinzel Decorative',cursive;font-size:1.3rem;color:var(--gold2);
+  text-shadow:0 0 14px rgba(212,168,67,.5);margin-bottom:16px;text-align:center}
+.lvlcont{font-size:.9rem;line-height:2;margin-bottom:16px;text-align:center}
+.lvlstat{color:var(--teal)}
+.gotitle{font-family:'Cinzel Decorative',cursive;font-size:1.4rem;color:var(--red2);
+  text-shadow:0 0 12px rgba(192,57,43,.5);margin-bottom:12px;text-align:center}
+.vtitle{font-family:'Cinzel Decorative',cursive;font-size:1.4rem;color:var(--gold2);
+  text-shadow:0 0 12px rgba(212,168,67,.5);margin-bottom:12px;text-align:center}
+.gomsg,.vmsg{color:var(--dim);font-style:italic;margin-bottom:20px;line-height:1.8;font-size:.88rem;text-align:center}
+
+/* BTNS */
+.btn-main{background:linear-gradient(135deg,#5a2e08,#7a4a12);border:2px solid var(--gold);
+  color:var(--gold2);font-family:'Cinzel',serif;font-size:.88rem;font-weight:600;
+  letter-spacing:2px;padding:11px 32px;cursor:pointer;border-radius:3px;
+  text-transform:uppercase;box-shadow:0 0 10px rgba(212,168,67,.3);transition:all .2s}
+.btn-main:hover{background:linear-gradient(135deg,#7a4a12,#9a6018);
+  box-shadow:0 0 18px rgba(212,168,67,.5);transform:translateY(-1px)}
+.btn-sm{background:var(--bg4);border:1px solid var(--border);color:var(--dim);
+  font-family:'Cinzel',serif;font-size:.75rem;padding:6px 14px;cursor:pointer;
+  border-radius:3px;transition:all .18s}
+.btn-sm:hover{border-color:#6a4a14;color:var(--text)}
+
+/* rarity colours */
+.rc{color:#aaa}.ru{color:#50a870}.rr{color:#4a7acc}.re{color:var(--purple)}.rl{color:var(--gold2)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ INTRO ═══════════ -->
+<div id="intro-screen">
+  <div class="stars"></div>
+  <div class="intro-inner">
+    <div class="ornament">✦ ── ────── ── ✦</div>
+    <div class="game-title">Depths of Aeloria</div>
+    <div class="ornament">✦ ── ────── ── ✦</div>
+    <div class="game-sub">A Tale of the Sunken Kingdom</div>
+    <div class="lore-box">
+      <p>Long ago, the Kingdom of <em>Aeloria</em> floated among the clouds — a civilisation of scholars, mages, and warriors who wielded the power of the <strong>Grand Aetheric Crystal</strong>, a stone of pure light that hung above their capital like a second sun.</p>
+      <p>The scholar <em>Malachar</em> grew obsessed with the Crystal's power. When Aeloria refused him, his obsession curdled into fury — and in one catastrophic night, he shattered it. Without the Crystal's light, Aeloria <strong>fell</strong>, sinking floor by floor into the earth, twisting and corrupting over five hundred years of darkness.</p>
+      <p>The village of <em>Thornwall</em> clings to the surface above the ruin, its people haunted by what lies below. They call it <strong>the Maw</strong>. Many have descended. None have returned.</p>
+      <p><strong>You are their last hope. Descend. Reclaim the Crystal. End the darkness.</strong></p>
+    </div>
+    <button class="btn-main" onclick="showNameScreen()">Begin Your Journey</button>
+  </div>
+</div>
+
+<!-- ═══════════ NAME / CLASS SCREEN ═══════════ -->
+<div id="name-screen">
+  <div class="name-inner">
+    <h2>Choose Your Name &amp; Calling</h2>
+    <div class="class-row" id="class-row">
+      <div class="cls sel" onclick="pickClass(this,'warrior')">
+        <div class="cls-icon">⚔️</div>
+        <div class="cls-name">Warrior</div>
+        <div class="cls-desc">HP:120 ATK:14 DEF:10<br><em>Warrior's Resolve</em> — 1.5× damage, ignores 50% enemy DEF.<br>Passive: strong vs undead.</div>
+      </div>
+      <div class="cls" onclick="pickClass(this,'rogue')">
+        <div class="cls-icon">🗡️</div>
+        <div class="cls-name">Rogue</div>
+        <div class="cls-desc">HP:90 ATK:18 DEF:6<br><em>Shadow Strike</em> — 2× damage, high crit chance.<br>Passive: 75% flee chance.</div>
+      </div>
+      <div class="cls" onclick="pickClass(this,'mage')">
+        <div class="cls-icon">🔮</div>
+        <div class="cls-name">Mage</div>
+        <div class="cls-desc">HP:75 MP:80 ATK:22 DEF:4<br><em>Arcane Burst</em> — pure magic, ignores DEF (20 MP).<br>Passive: high MP pool.</div>
+      </div>
+      <div class="cls" onclick="pickClass(this,'paladin')">
+        <div class="cls-icon">🛡️</div>
+        <div class="cls-name">Paladin</div>
+        <div class="cls-desc">HP:110 ATK:11 DEF:14<br><em>Holy Light</em> — deal + heal 20 HP (15 MP).<br>Passive: +15 HP every 3 floors.</div>
+      </div>
+    </div>
+    <input id="hname" class="name-input" type="text" maxlength="22" placeholder="Enter your name…"/>
+    <button class="btn-main" onclick="startGame()">Descend into Aeloria</button>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="game-screen" style="display:grid">
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <div class="loc-header">
+      <span class="loc-name" id="loc-name">Floor 0 — Thornwall Village</span>
+      <span class="loc-badge village" id="loc-badge">VILLAGE</span>
+    </div>
+
+    <!-- NARRATIVE -->
+    <div class="narrative" id="narrative"></div>
+
+    <!-- COMBAT PANEL -->
+    <div class="combat-panel" id="combat-panel">
+      <div class="fighters">
+        <div class="fighter">
+          <div class="f-name" id="cp-name">Hero</div>
+          <div class="f-icon" id="cp-icon">🪖</div>
+          <div class="hpbar-wrap"><div class="hpbar player" id="cp-bar" style="width:100%"></div></div>
+          <div class="f-hp" id="cp-hp">100/100</div>
+          <div class="f-status" id="cp-status"></div>
+        </div>
+        <div class="vs">⚔</div>
+        <div class="fighter">
+          <div class="f-name" id="ce-name">Enemy</div>
+          <div class="f-icon" id="ce-icon">👹</div>
+          <div class="hpbar-wrap"><div class="hpbar enemy" id="ce-bar" style="width:100%"></div></div>
+          <div class="f-hp" id="ce-hp">50/50</div>
+          <div class="f-status" id="ce-status"></div>
+        </div>
+      </div>
+      <div class="cbtn-row">
+        <button class="cbtn" onclick="ca('attack')">⚔️ Attack</button>
+        <button class="cbtn" onclick="ca('skill')">✨ Skill</button>
+        <button class="cbtn" onclick="openCombatItem()">🧪 Item</button>
+        <button class="cbtn flee" onclick="ca('flee')">💨 Flee</button>
+      </div>
+      <div class="clog" id="clog"></div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions-box">
+      <div class="action-title" id="act-title">What do you do?</div>
+      <div class="action-grid" id="actions"></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="hero-card">
+      <div class="hero-portrait" id="hport">🪖</div>
+      <div class="hero-name" id="hname-d">Hero</div>
+      <div class="hero-class" id="hclass-d">Warrior · Level 1</div>
+      <div class="sbar"><span class="slbl">HP</span><div class="strack"><div class="sfill hp" id="s-hp" style="width:100%"></div></div><span class="sval" id="sv-hp">120/120</span></div>
+      <div class="sbar"><span class="slbl">MP</span><div class="strack"><div class="sfill mp" id="s-mp" style="width:100%"></div></div><span class="sval" id="sv-mp">40/40</span></div>
+      <div class="sbar"><span class="slbl">XP</span><div class="strack"><div class="sfill xp" id="s-xp" style="width:0%"></div></div><span class="sval" id="sv-xp">0/100</span></div>
+      <div class="mini-stats">
+        <div class="mstat">⚔️ <span id="ms-atk">14</span></div>
+        <div class="mstat">🛡️ <span id="ms-def">10</span></div>
+        <div class="mstat">💰 <span id="ms-gold">50</span>g</div>
+        <div class="mstat">☠ <span id="ms-kills">0</span> kills</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tabbtn act" onclick="tab('inventory',this)">🎒 Bag</button>
+      <button class="tabbtn" onclick="tab('equipment',this)">⚔️ Gear</button>
+      <button class="tabbtn" onclick="tab('quests',this)">📜 Log</button>
+    </div>
+
+    <div class="tabpanel act" id="tab-inventory">
+      <div class="inv-grid" id="inv-grid"></div>
+    </div>
+    <div class="tabpanel" id="tab-equipment">
+      <div class="eslot" onclick="unequip('weapon')"><span class="elbl">Weapon</span><span class="eitem" id="e-weapon">— empty —</span></div>
+      <div class="eslot" onclick="unequip('armor')"><span class="elbl">Armor</span><span class="eitem" id="e-armor">— empty —</span></div>
+      <div class="eslot" onclick="unequip('accessory')"><span class="elbl">Access.</span><span class="eitem" id="e-accessory">— empty —</span></div>
+      <div class="ebonus" id="ebonus">No equipment bonus.</div>
+    </div>
+    <div class="tabpanel" id="tab-quests">
+      <div id="quest-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div id="shop-modal"   style="display:none" class="modal-bg"><div class="modal"><div class="mtitle" id="shop-title">🏪 Trader's Stall</div><div id="shop-items"></div><div class="mfooter"><span>Gold: <b id="shop-gold">0</b></span><button class="btn-sm" onclick="closeModal('shop-modal')">Close</button></div></div></div>
+<div id="npc-modal"    style="display:none" class="modal-bg"><div class="modal"><div class="npc-port" id="nm-icon"></div><div class="npc-nm" id="nm-name"></div><div class="npc-dial" id="nm-dial"></div><div class="npc-opts" id="nm-opts"></div><button class="btn-sm" onclick="closeModal('npc-modal')">Farewell</button></div></div>
+<div id="item-modal"   style="display:none" class="modal-bg"><div class="modal"><div class="imic" id="im-icon"></div><div class="imnm" id="im-name"></div><div class="imdc" id="im-desc"></div><div class="imst" id="im-stats"></div><div class="im-acts" id="im-acts"></div><button class="btn-sm" onclick="closeModal('item-modal')">Close</button></div></div>
+<div id="lvlup-modal"  style="display:none" class="modal-bg"><div class="modal"><div class="lvltitle">⬆ LEVEL UP ⬆</div><div class="lvlcont" id="lvl-cont"></div><button class="btn-main" onclick="closeModal('lvlup-modal')">Continue</button></div></div>
+<div id="go-modal"     style="display:none" class="modal-bg"><div class="modal"><div class="gotitle">☠ You Have Fallen ☠</div><div class="gomsg" id="go-msg"></div><button class="btn-main" onclick="restartGame()">Try Again</button></div></div>
+<div id="win-modal"    style="display:none" class="modal-bg"><div class="modal" style="background:linear-gradient(135deg,#080e08,#0e0e08)"><div class="vtitle">✦ AELORIA IS FREE ✦</div><div class="vmsg" id="win-msg"></div><button class="btn-main" onclick="restartGame()">Play Again</button></div></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  D A T A
+// ═══════════════════════════════════════════
+
+const WEAPONS = {
+  rusty_sword:    {id:'rusty_sword',   icon:'🗡️', name:'Rusty Sword',            type:'weapon',atk:4, def:0, mp:0,  price:0,   rarity:'common',   desc:'A corroded blade, notched and dull. Better than empty hands.',special:null},
+  iron_dagger:    {id:'iron_dagger',   icon:'🔪', name:'Iron Dagger',             type:'weapon',atk:7, def:0, mp:0,  price:30,  rarity:'common',   desc:'Quick and light in the hand. Finds gaps in armour. Can cause bleeding.',special:'bleed'},
+  oak_staff:      {id:'oak_staff',     icon:'🪄', name:'Oak Staff',               type:'weapon',atk:9, def:0, mp:15, price:40,  rarity:'common',   desc:'Worn smooth by a prior scholar\'s grip. Crackles with minor arcane energy.',special:'arcane_bolt'},
+  hunters_bow:    {id:'hunters_bow',   icon:'🏹', name:'Hunter\'s Bow',           type:'weapon',atk:10,def:0, mp:0,  price:55,  rarity:'common',   desc:'Carved yew, still strung tight. Poor in close quarters, deadly at range.',special:null},
+  mace_of_dawn:   {id:'mace_of_dawn', icon:'🔨', name:'Mace of Dawn',            type:'weapon',atk:13,def:2, mp:0,  price:80,  rarity:'uncommon', desc:'Iron touched with a priest\'s blessing. Glows faintly against the undead.',special:'holy_strike'},
+  shadowblade:    {id:'shadowblade',   icon:'🗡️', name:'Shadowblade',             type:'weapon',atk:15,def:0, mp:0,  price:100, rarity:'uncommon', desc:'Forged in darkness, drinks shadow with each blow. High critical chance.',special:'shadow_step'},
+  crystal_wand:   {id:'crystal_wand', icon:'🪄', name:'Crystal Wand',            type:'weapon',atk:17,def:0, mp:20, price:140, rarity:'uncommon', desc:'An Aelorian relic humming with cold. Fires bolts of pure frost on occasion.',special:'frost_bolt'},
+  war_axe:        {id:'war_axe',       icon:'🪓', name:'War Axe',                 type:'weapon',atk:19,def:-2,mp:0,  price:160, rarity:'uncommon', desc:'A two-handed brute. Devastating power at the cost of defence and finesse.',special:'cleave'},
+  serpent_fangs:  {id:'serpent_fangs', icon:'🔪', name:'Serpent Fangs',           type:'weapon',atk:16,def:0, mp:0,  price:150, rarity:'uncommon', desc:'Twin daggers with hollow channels. The venom-stained edges poison on contact.',special:'venom'},
+  bone_breaker:   {id:'bone_breaker', icon:'🔨', name:'Bone Breaker',             type:'weapon',atk:22,def:3, mp:0,  price:220, rarity:'rare',     desc:'Pried from the Tomb Sentinel\'s petrified grip. Shatters armour on a clean hit.',special:'armor_break'},
+  storm_staff:    {id:'storm_staff',   icon:'⚡', name:'Staff of Storms',         type:'weapon',atk:25,def:0, mp:25, price:260, rarity:'rare',     desc:'Vibrates with barely-contained lightning. Arcs between enemies in a storm-chain.',special:'chain_lightning'},
+  abyssal_blade:  {id:'abyssal_blade', icon:'🗡️', name:'Abyssal Blade',          type:'weapon',atk:27,def:0, mp:0,  price:300, rarity:'rare',     desc:'Black steel that drinks the life of what it cuts, feeding it back to its wielder.',special:'life_drain'},
+  titan_hammer:   {id:'titan_hammer', icon:'🔨', name:'Titan\'s Hammer',          type:'weapon',atk:32,def:5, mp:0,  price:380, rarity:'epic',     desc:'Impossibly heavy, impossibly devastating. The ground shakes when it falls.',special:'earthquake'},
+  phantom_blade:  {id:'phantom_blade', icon:'🗡️', name:'Phantom Blade',          type:'weapon',atk:29,def:0, mp:0,  price:360, rarity:'epic',     desc:'Partially real. It phases through armour on its way to flesh.',special:'phase_strike'},
+  arcane_tome:    {id:'arcane_tome',   icon:'📖', name:'Grand Arcane Tome',       type:'weapon',atk:34,def:0, mp:30, price:420, rarity:'epic',     desc:'Contains spells the Aelorian Academy banned before it fell. Power radiates from every page.',special:'arcane_storm'},
+  sundered_lance: {id:'sundered_lance',icon:'⚔️', name:'Sundered Lance',         type:'weapon',atk:37,def:4, mp:0,  price:520, rarity:'legendary',desc:'A fragment of the first Aelorian guardian\'s weapon. It tears through defences like cloth.',special:'sundering'},
+  void_scythe:    {id:'void_scythe',   icon:'⚔️', name:'Void Scythe',            type:'weapon',atk:42,def:-4,mp:20, price:600, rarity:'legendary',desc:'Cuts through the fabric of reality itself. The handle is warm in a way that makes you uneasy.',special:'void_rend'},
+  crystal_shard:  {id:'crystal_shard', icon:'💎', name:'Aetheric Crystal Shard', type:'weapon',atk:40,def:6, mp:40, price:0,   rarity:'legendary',desc:'A splinter of the Grand Crystal, blazing with the light of the old kingdom. It hums with recognition.',special:'aetheric_blast'},
+};
+
+const ARMORS = {
+  tattered_robe:  {id:'tattered_robe', icon:'👘',name:'Tattered Robe',      type:'armor',atk:0,def:3, mp:5,  price:0,   rarity:'common',   desc:'Patched wool, torn at the hem. Provides little protection but better than bare skin.'},
+  leather_vest:   {id:'leather_vest',  icon:'🥋',name:'Leather Vest',       type:'armor',atk:0,def:7, mp:0,  price:40,  rarity:'common',   desc:'Boiled leather, stiff but functional. Worn by every dungeon runner worth their coin.'},
+  chain_hauberk:  {id:'chain_hauberk', icon:'🛡️',name:'Chain Hauberk',      type:'armor',atk:0,def:11,mp:0,  price:90,  rarity:'common',   desc:'Interlocking iron rings, cold and heavy. The mercenary\'s standard. Reliable and unpretentious.'},
+  mage_mantle:    {id:'mage_mantle',   icon:'🧥',name:'Mage\'s Mantle',     type:'armor',atk:0,def:7, mp:20, price:100, rarity:'uncommon', desc:'Deep blue cloth woven with Aelorian sigils. Thin as paper, but the runes drink damage.'},
+  shadow_cloak:   {id:'shadow_cloak',  icon:'🧥',name:'Shadow Cloak',       type:'armor',atk:2,def:9, mp:0,  price:130, rarity:'uncommon', desc:'Enchanted to blur your outline. Enemies find it hard to land a clean blow.'},
+  bone_plate:     {id:'bone_plate',    icon:'🛡️',name:'Bone Plate',         type:'armor',atk:0,def:15,mp:0,  price:180, rarity:'uncommon', desc:'Ghoulish but effective. Rib cages and femurs fused into layered plating. Smells accordingly.'},
+  aelorian_coat:  {id:'aelorian_coat', icon:'🧥',name:'Aelorian Coat',      type:'armor',atk:0,def:19,mp:15, price:260, rarity:'rare',     desc:'Five-hundred-year-old Aelorian court wear, enchanted to resist both steel and sorcery.'},
+  void_plate:     {id:'void_plate',    icon:'🛡️',name:'Void Plate',         type:'armor',atk:0,def:26,mp:0,  price:340, rarity:'epic',     desc:'Forged in the absolute darkness of the deep void. Absorbs strikes that should kill you.'},
+  archon_shroud:  {id:'archon_shroud', icon:'🧥',name:'Archon\'s Shroud',   type:'armor',atk:4,def:32,mp:30, price:0,   rarity:'legendary',desc:'The outer mantle Malachar wore as he destroyed a kingdom. Still warm from centuries of dark power.'},
+};
+
+const ACCESSORIES = {
+  iron_ring:      {id:'iron_ring',      icon:'💍',name:'Iron Ring',          type:'accessory',atk:0, def:2, mp:0,  price:25,  rarity:'common',   desc:'A plain band of iron. Barely worth noting. Slightly worth wearing.'},
+  mana_amulet:    {id:'mana_amulet',    icon:'📿',name:'Mana Amulet',        type:'accessory',atk:0, def:0, mp:20, price:60,  rarity:'common',   desc:'A cloudy blue gem on a copper chain. Slowly restores 3 MP each combat turn.'},
+  warriors_band:  {id:'warriors_band',  icon:'💍',name:'Warrior\'s Band',    type:'accessory',atk:3, def:0, mp:0,  price:70,  rarity:'common',   desc:'Bronze engraved with a warrior\'s tally marks. Sharpens the mind and the arm.'},
+  lucky_charm:    {id:'lucky_charm',    icon:'🍀',name:'Lucky Charm',        type:'accessory',atk:0, def:0, mp:0,  price:80,  rarity:'uncommon', desc:'A pressed four-leaf clover in resin. Raises critical hit chance by 15%. Ridiculous. Effective.'},
+  vampiric_ring:  {id:'vampiric_ring',  icon:'💍',name:'Vampiric Ring',      type:'accessory',atk:2, def:0, mp:0,  price:120, rarity:'uncommon', desc:'Set with a dark red stone that never dulls. Drains 5% of each attack as life force.'},
+  arcane_focus:   {id:'arcane_focus',   icon:'🔮',name:'Arcane Focus',       type:'accessory',atk:4, def:0, mp:30, price:160, rarity:'rare',     desc:'A polished orb of Aelorian crystal. Amplifies all magical output by 20%.'},
+  aeloria_signet: {id:'aeloria_signet', icon:'💍',name:'Aeloria Signet',     type:'accessory',atk:5, def:5, mp:20, price:300, rarity:'epic',     desc:'The royal seal of King Aethar the Last. Wearing it feels like the weight of a kingdom.'},
+  shadow_heart:   {id:'shadow_heart',   icon:'💜',name:'Shadow Heart',       type:'accessory',atk:8, def:4, mp:15, price:0,   rarity:'legendary',desc:'A crystallised fragment of Malachar\'s own dark power, dislodged in his final collapse.'},
+};
+
+const POTIONS = {
+  healing_salve:   {id:'healing_salve',  icon:'🧪',name:'Healing Salve',           type:'potion',effect:'heal',        value:25,  price:15,  desc:'A cloth soaked in herb paste. Stings going on. Works going in. Restores 25 HP.'},
+  health_potion:   {id:'health_potion',  icon:'❤️', name:'Health Potion',           type:'potion',effect:'heal',        value:55,  price:30,  desc:'A glass vial of red liquid, warm to the touch. Restores 55 HP.'},
+  great_potion:    {id:'great_potion',   icon:'💖',name:'Greater Health Potion',    type:'potion',effect:'heal',        value:110, price:70,  desc:'Deep crimson and thick. The scent alone is nauseating. Restores 110 HP.'},
+  elixir_of_life:  {id:'elixir_of_life', icon:'🌹',name:'Elixir of Life',          type:'potion',effect:'heal',        value:220, price:160, desc:'Ancient Aelorian formula. Glows faintly rose. Restores 220 HP.'},
+  mana_vial:       {id:'mana_vial',      icon:'💧',name:'Mana Vial',               type:'potion',effect:'mana',        value:20,  price:20,  desc:'Cool blue water from a mana spring. Restores 20 MP.'},
+  mana_flask:      {id:'mana_flask',     icon:'🔵',name:'Mana Flask',              type:'potion',effect:'mana',        value:50,  price:50,  desc:'A heavy flask of concentrated arcane liquid. Restores 50 MP.'},
+  antidote:        {id:'antidote',       icon:'💚',name:'Antidote',                type:'potion',effect:'cure',        value:1,   price:25,  desc:'Bitter green syrup. Clears poison and bleeding with a single swallow.'},
+  strength_brew:   {id:'strength_brew',  icon:'🍺',name:'Strength Brew',           type:'potion',effect:'buff_atk',    value:5,   price:45,  desc:'Smells like iron and bad decisions. ATK +5 for 3 turns.'},
+  iron_skin_tonic: {id:'iron_skin_tonic',icon:'🥃',name:'Iron Skin Tonic',         type:'potion',effect:'buff_def',    value:6,   price:45,  desc:'A gritty grey liquid that leaves your skin tingling. DEF +6 for 3 turns.'},
+  berserker_draft: {id:'berserker_draft',icon:'🍷',name:'Berserker\'s Draft',       type:'potion',effect:'berserk',     value:10,  price:80,  desc:'Dark wine laced with dungeon-root extract. ATK+10, DEF-5 for 4 turns. Do not drink before important conversations.'},
+  phoenix_down:    {id:'phoenix_down',   icon:'🔥',name:'Phoenix Down',            type:'potion',effect:'revive',      value:50,  price:200, desc:'A single burning feather sealed in glass. If you die, you don\'t. Restores 50% HP automatically.'},
+  void_essence:    {id:'void_essence',   icon:'🖤',name:'Void Essence',            type:'potion',effect:'heal_full',   value:999, price:360, desc:'An Aelorian relic of supreme rarity. Black liquid that tastes of nothing. Fully restores HP and MP.'},
+  smoke_bomb:      {id:'smoke_bomb',     icon:'💨',name:'Smoke Bomb',              type:'potion',effect:'flee_sure',   value:1,   price:35,  desc:'Guaranteed escape from any encounter. The coward\'s best friend. No shame in it.'},
+  liquid_fire:     {id:'liquid_fire',    icon:'🧯',name:'Liquid Fire',             type:'potion',effect:'damage_enemy',value:45,  price:55,  desc:'Throw it at an enemy for 45 fire damage. Comes in a sealed clay vial for obvious reasons.'},
+  frozen_tear:     {id:'frozen_tear',    icon:'❄️', name:'Frozen Tear',             type:'potion',effect:'freeze',      value:2,   price:60,  desc:'Distilled from an ice elemental\'s final moment. Freezes the target solid for 2 turns.'},
+};
+
+const ALL = {...WEAPONS,...ARMORS,...ACCESSORIES,...POTIONS};
+
+const ENEMY_POOLS = {
+  e:[
+    {id:'goblin',     icon:'👺',name:'Cave Goblin',     hp:22, atk:6, def:2, xp:12,gold:[3,8],  loot:['healing_salve'],type:'beast',
+     flavour:'A wiry green creature with a stolen knife and a mouthful of jagged teeth. It looks hungry.'},
+    {id:'rat',        icon:'🐀',name:'Giant Rat',        hp:18, atk:5, def:1, xp:8, gold:[1,4],  loot:[],type:'beast',
+     flavour:'The size of a large dog, with dull red eyes and fur matted with something you\'d rather not identify.'},
+    {id:'skeleton',   icon:'💀',name:'Skeleton Warrior', hp:30, atk:8, def:4, xp:18,gold:[4,10], loot:['iron_dagger'],type:'undead',
+     flavour:'Animated by cold malice, its bones clatter with each deliberate step. It carries a cracked shortsword.'},
+    {id:'fungus',     icon:'🍄',name:'Spore Fungus',     hp:25, atk:7, def:3, xp:14,gold:[2,6],  loot:['antidote'],type:'beast',
+     flavour:'A mass of sickly luminescent mushroom-flesh, releasing clouds of toxic spore whenever it takes a hit.'},
+    {id:'bat_swarm',  icon:'🦇',name:'Bat Swarm',        hp:20, atk:9, def:1, xp:15,gold:[2,5],  loot:[],type:'beast',
+     flavour:'A shrieking cloud of leathery wings and needle teeth that descends from the ceiling as one living mass.'},
+  ],
+  m1:[
+    {id:'zombie',      icon:'🧟',name:'Rotting Zombie',   hp:55, atk:12,def:6, xp:35,gold:[8,16], loot:['health_potion'],type:'undead',
+     flavour:'It moves with terrible, inexorable patience. The smell hits you before it does.'},
+    {id:'dark_elf',    icon:'🧝',name:'Dark Elf Scout',   hp:45, atk:16,def:5, xp:40,gold:[12,20],loot:['hunters_bow'],type:'humanoid',
+     flavour:'A fallen Aelorian, skin ashen, eyes silver-blank. She notches an arrow without a word.'},
+    {id:'stone_golem', icon:'🗿',name:'Stone Golem',      hp:80, atk:10,def:14,xp:50,gold:[10,18],loot:['iron_ring'],type:'construct',
+     flavour:'Shoulders like boulders, fists like siege weapons. Slow. You wish it were slower.'},
+    {id:'shadow_hound',icon:'🐕',name:'Shadow Hound',     hp:50, atk:15,def:4, xp:38,gold:[7,14], loot:[],type:'beast',
+     flavour:'Barely more than a silhouette with teeth. It moves between the shadows faster than your eyes can follow.'},
+    {id:'cursed_armor',icon:'⚔️',name:'Cursed Armour',    hp:65, atk:13,def:12,xp:45,gold:[9,17], loot:['iron_skin_tonic'],type:'construct',
+     flavour:'An empty suit of plate that moves on spite alone. The visor is dark. There is nothing inside.'},
+  ],
+  m2:[
+    {id:'ghoul',       icon:'😱',name:'Ravenous Ghoul',   hp:90, atk:20,def:8, xp:70,gold:[15,28],loot:['mana_flask'],type:'undead',
+     flavour:'It scuttles on all fours, spine bent wrong. Its jaw unhinges wider than a jaw should go.'},
+    {id:'troll',       icon:'👹',name:'Cave Troll',        hp:120,atk:18,def:10,xp:80,gold:[20,35],loot:['great_potion'],type:'beast',
+     flavour:'Eight feet of grey muscle and bad temper. It regenerates if you let it. Don\'t let it.'},
+    {id:'demon_imp',   icon:'😈',name:'Demon Imp',         hp:75, atk:22,def:6, xp:75,gold:[18,30],loot:['mana_flask'],type:'demon',
+     flavour:'Tiny, fast, vicious. It laughs while it attacks. You find this more disturbing than it probably intended.'},
+    {id:'lich_acolyte',icon:'🧙',name:'Lich Acolyte',     hp:85, atk:24,def:5, xp:85,gold:[22,38],loot:['mana_vial'],type:'undead',
+     flavour:'A robed figure whose face has been replaced by smooth bone. It gestures toward you with fingers like icicles.'},
+    {id:'brood_spider',icon:'🕷️',name:'Brood Spider',     hp:95, atk:19,def:7, xp:72,gold:[16,26],loot:['antidote'],type:'beast',
+     flavour:'Bristling with eyes and legs, trailing silk. You hear the clicking of its mandibles long before you see it.'},
+  ],
+  d1:[
+    {id:'revenant',   icon:'👻',name:'Revenant Knight',   hp:140,atk:28,def:14,xp:110,gold:[30,50],loot:['strength_brew'],type:'undead',
+     flavour:'Once an Aelorian champion. Now a grudge wearing armour. It recognises nothing but its hatred.'},
+    {id:'void_wraith', icon:'🌫️',name:'Void Wraith',      hp:120,atk:32,def:8, xp:120,gold:[28,48],loot:['mana_flask'],type:'demon',
+     flavour:'Half here, half somewhere you don\'t want to imagine. Its screech doesn\'t come from a direction — it comes from inside your head.'},
+    {id:'iron_titan',  icon:'🤖',name:'Iron Titan',        hp:180,atk:24,def:22,xp:130,gold:[35,55],loot:['iron_skin_tonic'],type:'construct',
+     flavour:'An Aelorian war machine that outlasted its makers by five centuries. It doesn\'t know the war is over.'},
+    {id:'nightmare',   icon:'🐴',name:'Nightmare Steed',   hp:155,atk:30,def:12,xp:115,gold:[32,52],loot:[],type:'beast',
+     flavour:'A horse built from shadow and malice. Where it steps, frost spreads. Its eyes are holes in the world.'},
+    {id:'chaos_mage',  icon:'🔮',name:'Chaos Mage',        hp:130,atk:35,def:6, xp:125,gold:[40,65],loot:['arcane_focus'],type:'humanoid',
+     flavour:'A scholar who read too far into the forbidden texts. Power radiates from her in waves. So does madness.'},
+  ],
+  d2:[
+    {id:'death_knight',icon:'⚔️',name:'Death Knight',     hp:200,atk:38,def:20,xp:160,gold:[50,80], loot:['great_potion'],type:'undead',
+     flavour:'Malachar\'s champion. A general who sold his soul for immortality and received the worst version of it.'},
+    {id:'arch_demon',  icon:'😈',name:'Arch Demon',        hp:220,atk:40,def:16,xp:175,gold:[55,90], loot:['berserker_draft'],type:'demon',
+     flavour:'A pillar of hellfire and contempt. It has destroyed civilisations before Aeloria. It found that dull.'},
+    {id:'elder_lich',  icon:'💀',name:'Elder Lich',        hp:190,atk:42,def:14,xp:170,gold:[60,95], loot:['elixir_of_life'],type:'undead',
+     flavour:'Ancient, furious, and patient as stone. It has been refining its hatred for five hundred years.'},
+    {id:'void_titan',  icon:'🌀',name:'Void Titan',        hp:250,atk:36,def:24,xp:180,gold:[65,100],loot:['void_essence'],type:'construct',
+     flavour:'A colossus of pure nothingness given mass. Looking at it too long makes you question whether you exist.'},
+    {id:'fallen_angel',icon:'🌟',name:'Fallen Seraph',     hp:210,atk:44,def:18,xp:190,gold:[70,110],loot:['liquid_fire'],type:'demon',
+     flavour:'A being of divine grace whose grace shattered. Beautiful. Terrible. Bearing six wings of black flame.'},
+  ],
+};
+
+const BOSSES = {
+  10:{icon:'💀',name:'The Tomb Sentinel',hp:200,atk:18,def:10,xp:200,gold:80,type:'undead',
+    intro:`The air on Floor 10 carries a weight you feel in your teeth. The corridor opens into a vast burial chamber — rows of sealed sarcophagi stretching into the dark, each bearing the crest of Aeloria. At the chamber's centre, something stirs.\n\nIt rises slowly, deliberately, from a throne of fused stone and bone. Ten feet tall in corroded plate armour, its eyes blazing with the pale blue light of trapped souls. Ancient Aelorian script burns across its breastplate — a soldier bound here by the last mages, condemned to guard the first seal until the world itself ends.\n\n"NONE," it intones, and the word reverberates from every wall, "SHALL PASS THE FIRST SEAL."\n\nThe Tomb Sentinel raises its shield.`,
+    phases:[
+      {threshold:.66,msg:'The Sentinel slams its shield into the ground. GUARD STANCE — it hunkers behind its defences, ATK falls, DEF rises sharply.'},
+      {threshold:.33,msg:'A crack splits the Sentinel\'s shield. Then another. With a grinding roar, it SHATTERS the shield against the floor. BERSERKER RAGE — it abandons defence for pure murderous fury.'},
+    ],
+    drops:['bone_breaker','bone_plate','warriors_band'],
+    lore:`The Tomb Sentinel collapses in a cascade of ancient plate and glowing dust. The sarcophagi crack open along their seams — not releasing the dead, but releasing them. You watch a hundred Aelorian soldiers drift upward as pale light, finally freed.\n\nThe first seal breaks with a sound like a struck bell heard from very far away.`,
+  },
+  20:{icon:'🕷️',name:'Arachnathos, the Brood Mother',hp:380,atk:26,def:12,xp:380,gold:150,type:'beast',
+    intro:`You felt something was wrong on Floor 19. The walls became pale. Then white. By the time you reach Floor 20, you understand — the stone is entirely coated in silk, layers deep, old silk yellowed with age and something else. The floor gives slightly underfoot.\n\nYou are standing in a web the size of a cathedral.\n\nFrom above — far above — the darkness shifts. One eye opens. Then two. Then six. Then eight. Enormous, faceted, black as pitch.\n\n"Mmmm," comes a sound like silk tearing. "Something small. Something alive. It has been... so long."`,
+    phases:[
+      {threshold:.6,msg:'Arachnathos SHRIEKS. From every crack in the walls, the broodlings come — dozens of them. She feeds on their frenzy, ATK surging with terrible momentum.'},
+      {threshold:.3,msg:'Wounded and furious, Arachnathos exudes a coating of acidic silk. Her body hardens. DEF doubles. Striking her now will hurt you as much as her.'},
+    ],
+    drops:['storm_staff','shadow_cloak','vampiric_ring'],
+    lore:`The great web collapses inward as Arachnathos falls. Thousands of unhatched eggs dissolve into nothing — centuries of brood, unmade in an instant. The silk crumbles to ash.\n\nThe second seal breaks with a sound like a lullaby ending.`,
+  },
+  30:{icon:'🔮',name:'Morketh the Unbound',hp:540,atk:36,def:16,xp:540,gold:240,type:'demon',
+    intro:`You hear his laughter before you see him — rich and amused and faintly unhinged, echoing from the walls of his former study. The room is a ruin of shattered bookshelves, overturned arcane instruments, papers burned to nothing. In the centre of it all, he floats.\n\nMorketh was once the brightest mind in Aeloria's Academy. That was before he bargained with the darkness for immortality. Now his robes hang in tatters, his hands crackle with black lightning, and his eyes are twin dying stars.\n\n"Oh," he says, noticing you with what seems like genuine delight. "A visitor. Do you have any idea how long it has been since I've had someone to talk to?"\n\nHe raises one hand.\n\n"I'm afraid I'm going to have to kill you first. It's only polite."`,
+    phases:[
+      {threshold:.66,msg:'Morketh steps sideways into the void. PHASE FORM — he is barely present in reality. Attacks pass through him like smoke for 2 turns.'},
+      {threshold:.33,msg:'The phase form shatters outward in an explosion of black lightning. UNBOUND — Morketh\'s true form erupts, ATK surging catastrophically, defences abandoned entirely.'},
+    ],
+    drops:['abyssal_blade','aelorian_coat','arcane_focus'],
+    lore:`Morketh dissolves slowly, with an expression of something that might almost be relief. His last words, barely audible: "Tell the Archon... I never... stopped being... Aelorian..."\n\nThe third seal breaks. You are halfway down. The dungeon feels different now — as if it knows you are coming.`,
+  },
+  40:{icon:'🐉',name:'Verath, the Void Drake',hp:750,atk:46,def:20,xp:750,gold:350,type:'dragon',
+    intro:`Floor 40 is not a floor. It is a crater.\n\nThe ceiling is fifty feet up, stalactites broken off, scorch marks radiating outward from a central pit of absolute blackness. The air smells of ash and something older — the rot of void-touched flesh, the ozone of power that has been building for centuries.\n\nThe pit churns.\n\nSomething enormous erupts from it. Scales the colour of midnight. Wings of tattered shadow, each one as wide as a house. Eyes like collapsed stars that have forgotten they were ever bright. It moves with the terrible grace of something that has never lost a fight in its entire long life.\n\nIt lands. The ground cracks. It regards you from fifty feet away.\n\n"FRESH MEAT," it says, in a voice that enters through your bones, "COMES TO THE VOID."`,
+    phases:[
+      {threshold:.66,msg:'Verath takes flight, and the downdraft nearly throws you from your feet. AERIAL ASSAULT — void fire pours from above in waves, relentless, ATK surging to catastrophic levels.'},
+      {threshold:.33,msg:'A wound that won\'t close. Verath is ENRAGED — he crashes down in a LAST STAND, the impact alone dealing 50 damage. Every restraint is gone. He fights now to kill.'},
+    ],
+    drops:['titan_hammer','void_plate','aeloria_signet'],
+    lore:`Verath crashes to the ground and does not rise. As the void-fire dies from his scales, he speaks — barely, dying — in a voice now stripped of its terrible power.\n\n"The Archon... knows you are... coming. Aeloria's blood... is strong..."\n\nThe fourth seal breaks like a thunderclap. One remains.`,
+  },
+  50:{icon:'🌑',name:'Malachar, the Shadow Archon',hp:1300,atk:58,def:28,xp:1500,gold:0,type:'demon',
+    intro:`The final floor is not a floor. It is a memory.\n\nAeloria's throne room, as it was five hundred years ago — but inverted, shattered, rebuilt in darkness. The great columns stand, but they are wrong. The banners hang, but they are black. The crystal sconces that once held light hold shadow.\n\nOn the throne of broken crystal, he sits.\n\nMalachar looks nothing like what you imagined. He is not monstrous. He is tall, pale, wearing robes of absolute darkness that move like a living thing. His face is sharp, intelligent, almost sorrowful. He could have been a king.\n\nHe rises as you enter. He does not seem surprised.\n\n"I watched Aeloria fall from this very spot," he says. His voice fills the room completely, with no echo. "I watched her people weep. I watched her light extinguish. And I have spent five centuries waiting for someone foolish enough — or brave enough — to come here."\n\nHe takes one step forward. The darkness moves with him.\n\n"You have defeated my sentinels. Broken my seals. Killed my dragon." A pause. "I am... not displeased. A worthy opponent deserves a worthy end."\n\nThe shadow pours from him like wings.\n\n"Welcome," says Malachar. "To. The end."`,
+    phases:[
+      {threshold:.75,msg:'PHASE 1 — SHADOW VEIL: Malachar wraps himself in absolute darkness. His form becomes indistinct, DEF doubling as strikes pass through shadow rather than flesh.'},
+      {threshold:.5, msg:'PHASE 2 — CRYSTAL RAGE: He reaches into the shattered throne and tears free a shard of the Grand Crystal — using the very thing he destroyed as a weapon. He hurls it for 65 direct damage. ATK surges with furious power.',dmgBurst:65},
+      {threshold:.25,msg:'FINAL PHASE — ARCHON ASCENDANT: The pretence of restraint ends. Wings of living shadow erupt from Malachar\'s back, each one fifty feet wide. His eyes go white. This is his TRUE FORM, five centuries in the making.'},
+    ],
+    drops:['archon_shroud','shadow_heart','crystal_shard'],
+    lore:`Malachar dissolves. Not with fury. Not with defiance. With something that, in the end, might have been exhaustion.\n\nThe darkness retreats. The throne room shudders. Then, floor by floor — from fifty to one — the dungeon itself begins to rise, ascending toward the surface, the ruins of Aeloria reassembling, the corruption draining away.\n\nIn your hands, the fragments of the Grand Crystal find each other. They lock together. They blaze.\n\nFrom every corner, from every crack in the stone, the ghosts of Aeloria emerge — the soldiers, the scholars, the mages, the merchants, the children. Five centuries of trapped souls, finally free. They do not speak. They simply rise.\n\nYou stand in the light of a reborn kingdom, holding a blazing crystal, and behind you, you hear the first birds of a new dawn.\n\nYour name will be remembered for a thousand years.`,
+  },
+};
+
+const NPCS = {
+  elder_mira:{icon:'👴',name:'Elder Mira',
+    dial:`"You have the look of someone who won't be talked out of this. Good. Thornwall has no use for people who can be talked out of things right now."\n\nElder Mira is the oldest person in Thornwall, which means she remembers three people who descended into the Maw. She has a way of looking at you like she's already composing your eulogy — not from unkindness, but from experience.\n\n"The dungeon below us was a kingdom, once. It still is, in a way. Everything that falls doesn't vanish — it just goes somewhere darker. What do you want to know?"`,
+    opts:[
+      {t:"Who is Malachar?",r:`"A scholar. The most gifted mind Aeloria ever produced, and her most catastrophic failure. He wanted to harness the Grand Crystal's full power — to become, as he put it, 'more than a man.' Aeloria refused him.\n\n"So he came back in the night and shattered the Crystal with his bare hands. We don't really understand how. Neither do we understand why he chose to stay in the ruins rather than leave. Some say he lost something of himself in the shattering. Some say he simply had nowhere else to go."`},
+      {t:"Tell me about the seals.",r:`"When Aeloria fell, a handful of mages survived long enough to bind Malachar below the fifth floor. Five seals, each guarded by a warden. Defeat the wardens — the Tomb Sentinel, Arachnathos, Morketh, and Verath — and by the time you reach Malachar, you will have broken his bindings one by one. He will be weakened. He will still be formidable. But it will be possible.\n\n"The seals are at Floors 10, 20, 30, and 40. Do not skip them. You won't survive Malachar at full strength."`},
+      {t:"Any last advice?",r:`"Three things. Keep potions on hand — you think you have enough until you don't. Second: Phoenix Down is worth every coin. Third: the boss drops are powerful beyond anything the traders sell. Never sell them lightly, and equip them before you go deeper.\n\n"And come back alive. Thornwall has had enough eulogies."`},
+    ]},
+  blacksmith_gorath:{icon:'🔨',name:'Gorath the Smith',
+    dial:`The smell of his forge reaches you before he does — iron and smoke and something slightly charred that you hope is just leather. Gorath is a broad man with hands like spades and eyes that are always slightly squinting, as if he's evaluating structural integrity wherever he looks.\n\n"You're going in, then. Right. I won't waste your time telling you not to." He wipes his hands on a leather apron already beyond saving. "What do you want to know?"`,
+    opts:[
+      {t:"Tell me about weapons.",r:`"Different weapons, different jobs. My Mace of Dawn handles undead better than anything — the blessing isn't decorative, it genuinely ignites them. Shadow-touched blades, ironically, are weak against undead; the darkness recognises itself and resists.\n\n"Watch for the proc effects in combat. Each weapon has a special trigger — a chance to do something extra when you hit. That's often the difference between a fight you win easily and a fight you barely survive."`},
+      {t:"What should I prioritise?",r:`"Boss drops. I cannot stress this enough. The equipment you loot from the floor bosses is forged from Aelorian-era materials — nothing I can make in Thornwall comes close. Equip everything you find from bosses before anything else, and don't sell it unless you have something demonstrably better.\n\n"Also: accessories. Most people forget accessories. They make a bigger difference than they look."`},
+    ]},
+  healer_lysa:{icon:'🧝‍♀️',name:'Lysa the Tender',
+    dial:`Her clinic is a converted barn, dried herbs hanging from every rafter, neat rows of labelled jars on every shelf. She looks up from whatever she's grinding with a mortar and gives you the kind of look that says she's already measured your wounds by eye.\n\n"You're going into the Maw. Everyone who comes in here before dawn goes into the Maw." She sets down the mortar. "I assume you want something from me, or you'd already be gone."`,
+    opts:[
+      {t:"Can you heal me?",r:`"I can spare something. Your colour's poor and you're holding your shoulder like it aches. Here."`,heal:true},
+      {t:"What should I know about potions?",r:`"The Phoenix Down is the single most valuable item in the Maw. One death, averted. Carry one at all times past floor twenty.\n\n"Antidotes are chronically undervalued. Late-floor poison can kill you in three turns without one. And the Void Essence — if you ever find one, or can afford one — hold it until you truly need it. It's not a combat item, it's a second life."`},
+      {t:"What do you know about the deep floors?",r:`"Past floor thirty, the wounds I see on people who come back — which is rare — are different. Not just physical. Something in the deep floors damages the mind. Stay focused. Don't read the carvings on the walls past floor forty. And don't look into the dark pools on floors sixteen and onward. I mean it."`},
+    ]},
+  scholar_vex:{icon:'🧑‍🎓',name:'Scholar Vex',
+    dial:`He's surrounded by maps and papers that he clearly doesn't want touched, in a room that smells of candle wax and old ink. He looks up with the expression of someone who has been interrupted but is desperately trying not to show how pleased he is to have company.\n\n"You're a dungeon-runner. Fascinating. I've been documenting the Maw's structure for eleven years — entirely from outside it, naturally — and there are several things I believe I could tell you that would improve your odds materially."`,
+    opts:[
+      {t:"What is the structure of the Maw?",r:`"The dungeon is a geological record of Aeloria's fall. Each floor represents approximately a decade of the kingdom's descent. As you go deeper, you go further back in time — Floor 50 is the kingdom as it was the night it fell, five centuries ago, preserved in darkness.\n\n"This means the enemies on the upper floors are recent — creatures that moved in after the fall. The deeper floors contain things that were trapped when Aeloria sank, which tend to be considerably more dangerous."`},
+      {t:"Tell me about the Grand Crystal.",r:`"The source of all Aelorian power. Think of it as the kingdom's sun — it powered their lights, their warmth, their magic, their agriculture. Without it, they had nothing.\n\n"When Malachar shattered it, the energy didn't disappear. It dispersed. Some of it sank into the ruins and corrupted them. Some of it is still there, in fragments. If you could find a way to reassemble it..." He pauses. "Well. That would be quite something, wouldn't it."`},
+    ]},
+  dungeon_ghost:{icon:'👻',name:'Aelorian Shade',
+    dial:`The figure barely has a form — a suggestion of armour, a suggestion of a face, the pale blue light that seems to be all that's left of a man. It turns when you approach, with the slow deliberateness of something that has not moved in a very long time.\n\nFor a moment it simply looks at you. Then, in a voice like wind through an empty building:\n\n"...Living one. You are... living. I had almost forgotten what that..." A pause. "Descend. Please. Free us. Five centuries is... a very long time to wait."`,
+    opts:[
+      {t:"Who were you?",r:`"A soldier. Third regiment of the Crystal Guard — we protected the Grand Crystal day and night. The night Malachar came, we fought him. We were good soldiers. It did not matter.\n\n"When the Crystal shattered, the wave of energy swept through us. We became... this. Bound to the ruins. Aware. Waiting. Five hundred years of waiting is..." The shade is quiet for a moment. "It is a long time to know what you lost."`},
+      {t:"What is it like down there?",r:`"Darker than you imagine. And the darkness knows you. The lower floors are aware in a way that stone should not be — Malachar's consciousness has spread through them like roots.\n\n"You will feel it first as unease. Then as certainty that something is watching. Then as voices. Don't answer the voices. They are not asking questions you should answer."`},
+    ]},
+};
+
+const FLOOR_LORE = {
+  0:`The village of Thornwall clings to the mountainside like a man gripping a ledge. The houses are small, the torches numerous — no one here lets it get fully dark if they can help it. In the centre of the village square, the iron doors of the Maw stand open, as they have always stood. No lock has ever held them shut. Nothing from inside has ever tried to leave.\n\nThe villagers watch you with the particular expression of people who want to feel hopeful but have had hope disappointed before.`,
+  1:`The first thing you notice is the smell: cold stone, stale air, and something faintly organic that you decide not to investigate. The corridor stretches before you, walls of rough-cut Aelorian stone bearing the scars of their five-century fall — cracks, water damage, the occasional runic inscription worn too smooth to read.\n\nA torch gutters somewhere ahead, impossible since you brought the only light. And yet.`,
+  2:`The old gatehouse. Once, Aelorian soldiers stood watch here and checked passage into the lower city. The guard posts are still there, the stone benches still smooth from a thousand pairs of boots. Someone has scratched words into the wall in Aelorian script. You squint at the letters.\n\nWARNING. TURN BACK. THE FALL IS NOT COMPLETE.\n\nYou decide that whoever wrote this was being metaphorical.`,
+  3:`Water has found its way in here, seeping through ceiling cracks to pool across the corridor floor, cold and perfectly black. You wade through it and try not to think about what might be beneath the surface. Something brushes your ankle. You walk faster.`,
+  4:`Collapsed barracks. The wooden bunks rotted away centuries ago, but the stone frames remain, and on them — preserved by the dry air and the magic that still saturates these walls — lie the outlines of where men and women once slept. Rusted weapons are stacked against one wall, a thousand soldiers' worth of equipment, abandoned in the chaos of a single night. You step over a pair of boots that still hold the shape of feet.`,
+  5:`The fungal cave opens without warning, and for a moment you simply stop. Enormous mushrooms — the smallest taller than you, the largest the size of trees — fill the space with soft blue-green bioluminescence. It is, genuinely, beautiful. You remind yourself that it is also toxic, as the faint tang in the air is already giving you a headache.`,
+  6:`The library antechamber. The shelves still stand, but the books are long gone to damp and rot — with one exception. In the furthest corner, a scroll sits unopened, preserved by an enchantment you can see as a faint golden shimmer around its case. You approach. The shimmer intensifies. You step back. Some doors you shouldn't open on the way down.`,
+  7:`Someone went to considerable effort. The floor here is an intricate pattern of pressure plates — subtle, stone-coloured, easy to miss. The ceiling is fitted with arrow slits. Three swinging blade traps have been carefully wedged open, either by an earlier explorer or as an invitation. You navigate it all with careful steps, telling yourself it's just engineering, just mechanics, nothing personal.`,
+  8:`The replica throne room. Not the real one — something built the real throne room, floor by floor, in this corrupted mirror. The throne is here, carved from stone by something without a proper understanding of human sitting. The banners are here, their sigils wrong in ways that are hard to articulate. It is a photograph of a place taken by someone who has only ever heard it described. You sit on the wrong throne for a moment. It fits surprisingly well.`,
+  9:`The outer sanctum. The air here has a different quality — charged, expectant, the way the sky feels before lightning. The Aelorian script on the walls is denser here, and some of it still glows with a faint residual magic, pulsing with a slow, irregular rhythm like a heartbeat. You realise the rhythm matches your own pulse and walk faster.`,
+  10:`THE FIRST SEAL.\n\nThe temperature drops by ten degrees in the space of three steps. You can see your breath. The corridor ends in a set of doors engraved with protective wards — the original sealing magic, still active, still burning with pale blue fire along its lines. Beyond it: the Tomb of the Forgotten Guard.\n\nSomething on the other side of those doors heard you coming. You heard nothing. But you know it heard you.`,
+  11:`Past the first seal, the dungeon has changed — not dramatically, but perceptibly. The cold is different. The light behaves differently. The shadows in the corners seem to have more depth than shadows should have, as if they recede into spaces the room doesn't contain.\n\nYou keep moving. There is only one direction that makes sense.`,
+  12:`A natural cavern has been converted, over five centuries, into an improvised cemetery. The markers are crude — stones with scratched symbols, some in Aelorian, some in languages you don't recognise. The graves are not all old. Some of the soil shows signs of relatively recent disturbance. You count seventeen before you stop counting.`,
+  13:`The old mine. Aelorian workers extracted Aetheric ore here — the raw material of the Crystal's power — in the decades before the fall. The extraction equipment is still in place, frozen in the moment work was abandoned. The ore cart is half-full. The pick is buried in the wall mid-swing. Time stopped here in a specific second, five hundred years ago, and resumed without the people.`,
+  14:`A maze of mirrors, most shattered, some still whole. In the whole ones, your reflection is wrong. Not dramatically wrong — subtly. Your reflection is standing in a slightly different posture. Your reflection turns its head slightly before you do. You walk quickly through the maze, not running, definitely not running, and do not look back until you're out.`,
+  15:`The fungal warrens — the mushroom cave from above, replicated and mutated here into something less beautiful and more threatening. These mushrooms are grey-white and clustered low to the ground, releasing a near-invisible spore cloud that makes your eyes water and your judgment slightly unreliable. You cover your mouth and press through.`,
+  16:`An underground lake occupies the entirety of Floor 16, leaving only a narrow stone walkway around its edge. The water is jet black and perfectly still — not the stillness of calm water, but the stillness of something holding itself motionless. You make it a point not to look directly into the water. Once, you do anyway. You regret it for several floors.`,
+  17:`The Void Guard barracks. These soldiers served Malachar willingly, after the fall — traitors to the kingdom they were trained to defend. As punishment, he granted them what they asked for: they still serve. They still walk these halls in their corroded armour, maintaining a routine long since emptied of purpose. Their loyalty earned them an eternity.`,
+  18:`A cathedral carved from the living rock of the mountain, its vaulted ceiling lost in darkness sixty feet above. The altars were holy once, dedicated to Aeloria's gods. Now they bear different carvings, different supplications. The god being worshipped here now is not one you'd want to approach.`,
+  19:`The silk starts at the top of the staircase. By the time you reach Floor 19 proper, it coats the walls, the ceiling, the floor — layers deep, old silk crumbled to dust at the bottom, fresh silk gleaming at the top. It crunches softly underfoot like snow. Above you, in the dark, something shifts with a sound like a thousand needles clicking together.`,
+  20:`THE SECOND SEAL.\n\nThe web cathedral. The Brood Mother's lair spans the entire floor, a masterwork of silk construction centuries in the making. At its centre, above a pit that smells of old death, something enormous breathes in the darkness. Eight points of reflected light catch your torchlight from far above.\n\nThe eyes open.`,
+  21:`With the Brood Mother dead, the silk loses its enchantment and crumbles to grey ash within minutes. Floor 21 emerges from beneath it — ordinary stone, almost disappointingly so, smelling of the clean mineral damp of deep rock for the first time in two floors. You breathe properly for the first time since Floor 19 and appreciate it, because it won't last.`,
+  22:`A tower section, fallen sideways. What were walls are now floors and ceilings; what were floors are now walls. You walk along what was once a corridor's ceiling and look down through what was once a window at what was once a floor, now a wall, and feel your sense of up and down argue briefly before settling.`,
+  23:`The warrior's hold, preserved mid-battle. The void magic that was unleashed when Aeloria fell caught this floor in a specific moment: soldiers in full combat posture, weapons drawn, facing enemies that have long since crumbled to dust. The soldiers remain, frozen mid-swing, mid-parry, mid-cry. As you pass through them, their eyes track you.`,
+  24:`The void seeps in here — not metaphorically. Small tears in reality, the size of your thumb, dot the corridor walls at irregular intervals. Through them you can see somewhere else, but not clearly — impressions of colour, movement, geometry that doesn't resolve into anything you can name. The shadows here move independently of their sources.`,
+  25:`Ancient market stalls, still standing. Aeloria's merchant district — the largest in the floating kingdom — has been displaced here, intact, its goods long since decayed but its structure preserved by pure Aelorian enchantment. Signs advertise services in script you can almost read. Price lists hang in windows. Some of the prices are quite reasonable, if you had the right currency and five centuries weren't in the way.`,
+  26:`The mage district. Experiments left running when Aeloria fell have had five hundred years to develop without supervision. The results wander the halls: failed transfigurations, escaped constructs, spells with no target still seeking one. Some are harmless. Most are not. None of them seem to understand they have no context anymore.`,
+  27:`A river of black flame runs through the centre of Floor 27, crossing your path and vanishing into the wall on both sides. You find a bridge — intact, stone, fireproof — and cross it. The black flame doesn't radiate heat. It radiates cold. You cross quickly and do not dwell on how fire can be cold, or what it is burning.`,
+  28:`The obsidian gardens. Someone — or something — has cultivated the natural crystal formations of this cave into something that resembles, distantly, a garden. Beds of crystal flowers. Paths of cut obsidian. A fountain, dry for centuries, its basin filled with dark water. It is beautiful in the way that a very old trap is beautiful — if you brush one of those crystal petals, it will cut you to the bone.`,
+  29:`You can hear his laughter from the staircase. It echoes through Floor 29 from no discernible source, bouncing off the walls without regard for acoustics. Sometimes it is distant. Sometimes it comes from directly behind you. You have learned not to turn around.`,
+  30:`THE THIRD SEAL.\n\nThe Hall of Unbound Power. Morketh the Unbound has made his shattered study into something between a laboratory and a memorial. Papers drift through the air, held by spent enchantments. Arcane instruments tick and hum on benches long collapsed. At the centre of it all, floating, he waits.\n\n"At last," says Morketh. "Someone interesting."`,
+  31:`Past the halfway point. Something about the dungeon is different now — not in any measurable way, but you feel it. The ancient Aelorian enchantments that still permeate these walls have become aware of you, in the way that old houses become aware of their inhabitants. You are no longer a stranger here. The dungeon has accepted you.\n\nThis is not, necessarily, good.`,
+  32:`Your torch burns purple here. You didn't change it. The flame is the same flame — but the ambient void energy is dense enough now to affect the light's character. You can see your own shadow in several places at once. One of them, you notice, is not quite keeping up.`,
+  33:`The Iron Works — Aeloria's weapons foundry, enormous and cathedral-like, its forges cold for five centuries. The scale of it is staggering: this place once armed an entire floating kingdom. Now the forges produce something else; the hammering you hear from the sealed chambers is rhythmic and deliberate, and you decide, firmly, not to investigate what is being made.`,
+  34:`The glass field. A sorcerous battle of some kind — ancient, Aelorian-era — melted the rock of this corridor into glass and then shattered it. Every step crunches. Every piece of glass has an edge. The reflections are wrong in the same way the mirrors were wrong on Floor 14, except here there are thousands of them, and each one is wrong in a slightly different way.`,
+  35:`The celestial observatory. Aeloria's astronomers mapped the sky from this dome, its enchanted ceiling showing a perfect representation of the stars above — or what was above, five centuries ago. Some of those stars have moved since then. Some of the new ones don't move the way stars should. Several of them appear to be looking back.`,
+  36:`The void fractures are visible here as something more than small tears — full cracks in space, floor to ceiling, through which you can see somewhere else entirely. Not the impressions from Floor 24, but a clear elsewhere: a darkness lit by nothing, containing something enormous that you cannot resolve into a shape. The cracks were not here the last time someone passed through. They are widening.`,
+  37:`The demon gardens. Whatever demons took root on these floors have spent five centuries cultivating Floor 37 into something that parodies beauty with unsettling precision. Everything is correct in form — paths, flower beds, ornamental hedges — and wrong in every other respect. The flowers are the colour of old bruises. The paths curve in ways that don't align with the space they occupy. The air smells of sweetness with something underneath it that makes you feel observed.`,
+  38:`The knight's hall — the training ground where Aeloria's finest fighters once honed their art. The practice marks are still on the floor. The weapon racks still stand, though the weapons are long gone. The spirits of those who trained here haven't left. They don't attack, but they follow you, watching you with the critical eyes of professionals evaluating your technique. You try not to find this more unsettling than the things that do attack.`,
+  39:`Scorch marks. Ancient scorch marks cover every surface, from floor to ceiling — the kind left by dragon fire hot enough to fuse stone at the edges. They radiate outward from a point at the corridor's end. They are very old. The ash of something enormous lies in drifts against the walls. In the drifts, you can see the shapes of Aelorian soldiers, preserved in ash, still holding their weapons. They didn't run.`,
+  40:`THE FOURTH SEAL.\n\nFloor 40 is a void crater, deep and dark and smelling of absolute cold. In the centre of the crater, in a pit of darkness, something breathes.\n\nYou have fought undead and demons and an unbound sorcerer and a spider the size of a cathedral. This is different. This is ancient and primordial and wrong in a way that your body understands before your mind does.\n\nThe pit churns. The darkness rises.`,
+  41:`The final stretch. Floors 41 through 49 are different from everything above them — not in degree but in kind. The Aelorian enchantments here are not residual, not decayed. They are active. Living. The walls pulse faintly, and you begin to understand, somewhere deep in your chest, that the dungeon itself is aware of you. Has been aware of you. Has been waiting.`,
+  42:`The outer sanctum ring. Malachar's consciousness has saturated the stone here so completely that the walls are warm to the touch, faintly luminescent, and react to your presence: the inscriptions on the walls rearrange themselves as you pass, forming words in Aelorian that you cannot read quickly enough before they shift again. The ones you do catch say things like "NOT YET" and "ALMOST" and, once: "BRAVE."`,
+  43:`The crystal graveyard. The outer corridors of the original Aetheric Crystal's support structure, now empty — the Crystal is long gone, but the architecture that held it persists as a series of vast brackets and anchors reaching into empty air above a dark drop. In the brackets, crystal shards have collected over the centuries, each one a dead fragment of Aeloria's power source. They glow faintly, like embers that have almost gone out.`,
+  44:`Gravity is different here. Not dramatically — but you notice that the dust on the floor falls at a slight angle, as if the local definition of "down" is slightly offset from the one you've been using all your life. Objects dropped from above take a moment longer to land than they should. The void is pressing in close enough to distort the physics of the space.`,
+  45:`The hall of the fallen. Every adventurer, soldier, and fool who descended the Maw before you left something here — an echo in the stone, a lingering impression. You can feel them as you walk through, not quite voices, not quite visions. The sensation is cumulative. By the time you reach the end of the hall, you feel heavy with the weight of everyone who tried before you. And failed.`,
+  46:`Malachar's gardens — the private space of a being who has had five centuries to cultivate his obsessions. Unlike the demon gardens above, these do not parody beauty. They achieve it, in a dark and deeply wrong way. The flowers are real. The paths are orderly. The fountain runs with water that is very cold and very clear.\n\nIn the centre of the garden, there is a statue. The statue is of Aeloria, as it was — floating, radiant, whole. The expression on its carved face is grief.`,
+  47:`The ritual chamber. The Grand Crystal was destroyed here. The scar of its shattering is still visible: a permanent burn in the fabric of reality at the chamber's centre, a place where five-hundred-year-old light still leaks from a wound in the world. The moment is preserved, not as a physical record, but as a feeling. Stand at the centre of the chamber and you can feel it — the instant of loss, the shock of it, the silence that followed when a kingdom's light went out.`,
+  48:`One floor away. Malachar's presence is no longer something you feel — it is something you move through. The air itself is saturated with his consciousness: old, cold, vast, and aware of your every breath. Not hostile. Considering.\n\nYou are being measured.`,
+  49:`The final staircase. Nine steps, by the look of it. The stone is clean, well-maintained, recently swept. Someone comes this way regularly enough to bother.\n\nFrom below: absolute silence. Nothing. Not even your own footsteps, once you begin to descend.\n\nThe silence is not empty. The silence is full.`,
+  50:`THE FALLEN THRONE OF AELORIA.\n\nAnd there he sits.`,
+};
+
+const QUESTS = [
+  {id:'q1',title:'Into the Maw',      desc:'Reach Floor 5.',                                  done:s=>s.floor>=5},
+  {id:'q2',title:'The First Seal',    desc:'Defeat the Tomb Sentinel on Floor 10.',            done:s=>s.bd.includes(10)},
+  {id:'q3',title:'The Second Seal',   desc:'Defeat Arachnathos on Floor 20.',                  done:s=>s.bd.includes(20)},
+  {id:'q4',title:'The Third Seal',    desc:'Defeat Morketh the Unbound on Floor 30.',          done:s=>s.bd.includes(30)},
+  {id:'q5',title:'The Fourth Seal',   desc:'Defeat Verath, the Void Drake on Floor 40.',       done:s=>s.bd.includes(40)},
+  {id:'q6',title:'End the Shadow',    desc:'Face Malachar on Floor 50 and free Aeloria.',      done:s=>s.bd.includes(50)},
+  {id:'q7',title:'Hoarder',           desc:'Collect 10 or more unique item types.',            done:s=>s.found>=10},
+  {id:'q8',title:'Golden Road',       desc:'Accumulate 500 gold at once.',                     done:s=>s.gold>=500},
+  {id:'q9',title:'Veteran of the Maw',desc:'Reach Level 10.',                                  done:s=>s.lv>=10},
+  {id:'qa',title:'Merchant\'s Friend', desc:'Spend 300 gold at traders.',                       done:s=>s.spent>=300},
+];
+
+function shopFor(floor){
+  const S=[];
+  S.push(POTIONS.healing_salve,POTIONS.health_potion,POTIONS.antidote,POTIONS.mana_vial,POTIONS.smoke_bomb,POTIONS.strength_brew,POTIONS.iron_skin_tonic);
+  if(floor>=8)  S.push(POTIONS.great_potion,POTIONS.mana_flask);
+  if(floor>=15) S.push(POTIONS.liquid_fire,POTIONS.frozen_tear);
+  if(floor>=20) S.push(POTIONS.berserker_draft);
+  if(floor>=22) S.push(POTIONS.elixir_of_life);
+  if(floor>=32) S.push(POTIONS.phoenix_down);
+  if(floor>=40) S.push(POTIONS.void_essence);
+  if(floor>=2)  S.push(WEAPONS.iron_dagger,ARMORS.leather_vest);
+  if(floor>=3)  S.push(WEAPONS.hunters_bow);
+  if(floor>=5)  S.push(WEAPONS.mace_of_dawn,ARMORS.chain_hauberk,ACCESSORIES.iron_ring);
+  if(floor>=7)  S.push(WEAPONS.shadowblade,ARMORS.mage_mantle,ACCESSORIES.warriors_band);
+  if(floor>=10) S.push(ACCESSORIES.mana_amulet);
+  if(floor>=12) S.push(WEAPONS.crystal_wand,ACCESSORIES.lucky_charm);
+  if(floor>=14) S.push(WEAPONS.war_axe,ARMORS.shadow_cloak);
+  if(floor>=17) S.push(WEAPONS.serpent_fangs,ARMORS.bone_plate,ACCESSORIES.vampiric_ring);
+  if(floor>=24) S.push(ARMORS.aelorian_coat);
+  if(floor>=28) S.push(ACCESSORIES.arcane_focus);
+  if(floor>=32) S.push(WEAPONS.phantom_blade);
+  if(floor>=35) S.push(WEAPONS.arcane_tome);
+  if(floor>=38) S.push(ARMORS.void_plate,ACCESSORIES.aeloria_signet);
+  if(floor>=42) S.push(WEAPONS.sundered_lance);
+  if(floor>=46) S.push(WEAPONS.void_scythe);
+  return S;
+}
+
+// ═══════════════════════════════════════════
+//  E N G I N E
+// ═══════════════════════════════════════════
+const CB={warrior:{hp:120,mp:40,atk:14,def:10,pt:'🪖'},rogue:{hp:90,mp:35,atk:18,def:6,pt:'🎭'},mage:{hp:75,mp:80,atk:22,def:4,pt:'🧙'},paladin:{hp:110,mp:50,atk:11,def:14,pt:'✨'}};
+
+let G={};
+let selCls='warrior';
+
+function newG(name,cls){
+  const b=CB[cls];
+  return{name,cls,lv:1,xp:0,xpn:100,
+    hp:b.hp,mhp:b.hp,mp:b.mp,mmp:b.mp,
+    atk:b.atk,def:b.def,gold:50,floor:0,
+    bd:[],found:0,spent:0,kills:0,qc:[],
+    inv:[],eq:{weapon:null,armor:null,accessory:null},
+    inC:false,en:null,
+    bufAtk:0,bufDef:0,bufTurns:0,
+    berserk:false,bTurns:0,phxDown:false,
+    poisoned:false,bleeding:false,stunned:false,
+  };
+}
+
+function gAtk(){let a=G.atk;['weapon','armor','accessory'].forEach(s=>{if(G.eq[s])a+=(G.eq[s].atk||0);});a+=G.bufAtk;if(G.berserk)a+=10;return Math.max(1,a);}
+function gDef(){let d=G.def;['weapon','armor','accessory'].forEach(s=>{if(G.eq[s])d+=(G.eq[s].def||0);});d+=G.bufDef;if(G.berserk)d-=5;return Math.max(0,d);}
+function gMmp(){let m=G.mmp;['weapon','armor','accessory'].forEach(s=>{if(G.eq[s])m+=(G.eq[s].mp||0);});return m;}
+
+function addItem(item,qty=1){const ex=G.inv.find(s=>s.item.id===item.id);if(ex)ex.qty+=qty;else{G.inv.push({item,qty});G.found++;}}
+function remItem(id,n=1){const s=G.inv.find(s=>s.item.id===id);if(!s)return false;s.qty-=n;if(s.qty<=0)G.inv.splice(G.inv.indexOf(s),1);return true;}
+
+function gainXP(v){G.xp+=v;while(G.xp>=G.xpn){G.xp-=G.xpn;levelUp();}}
+function levelUp(){
+  G.lv++;
+  const hg=G.cls==='warrior'?15:G.cls==='paladin'?13:G.cls==='rogue'?10:8;
+  const mg=G.cls==='mage'?15:G.cls==='paladin'?10:8;
+  const ag=G.cls==='mage'?3:G.cls==='rogue'?3:G.cls==='warrior'?2:1;
+  const dg=G.cls==='paladin'?2:G.cls==='warrior'?2:1;
+  G.mhp+=hg;G.hp=Math.min(G.hp+hg,G.mhp);G.mmp+=mg;G.mp=Math.min(G.mp,gMmp());G.atk+=ag;G.def+=dg;G.xpn=Math.floor(G.xpn*1.4);
+  document.getElementById('lvl-cont').innerHTML=`You have reached <strong>Level ${G.lv}</strong>!<br><br><span class="lvlstat">❤️ Max HP +${hg}</span><br><span class="lvlstat">💧 Max MP +${mg}</span><br><span class="lvlstat">⚔️ ATK +${ag}</span><br><span class="lvlstat">🛡️ DEF +${dg}</span><br><br>Next level at ${G.xpn} XP`;
+  document.getElementById('lvlup-modal').style.display='flex';
+}
+
+function spawnEnemy(){
+  const pools=[ENEMY_POOLS.e,ENEMY_POOLS.m1,ENEMY_POOLS.m2,ENEMY_POOLS.d1,ENEMY_POOLS.d2];
+  const pi=Math.min(4,Math.floor((G.floor-1)/10));
+  const b=pools[pi][Math.floor(Math.random()*pools[pi].length)];
+  const fm=1+G.floor*.06;
+  return{...b,hp:Math.floor(b.hp*fm),mhp:Math.floor(b.hp*fm),
+    atk:Math.floor(b.atk*(1+G.floor*.03)),def:Math.floor(b.def*(1+G.floor*.02)),
+    catk:Math.floor(b.atk*(1+G.floor*.03)),cdef:Math.floor(b.def*(1+G.floor*.02)),
+    gold:[Math.floor(b.gold[0]*(1+G.floor*.05)),Math.floor(b.gold[1]*(1+G.floor*.05))],
+    xp:Math.floor(b.xp*fm),poisoned:false,frozen:0,phaseIdx:0,shielded:false};
+}
+
+function spawnBoss(f){const b=BOSSES[f];return{...b,mhp:b.hp,catk:b.atk,cdef:b.def,phaseIdx:0,frozen:0,poisoned:false,shielded:false};}
+function isBoss(f){return f>0&&f%10===0;}
+function isShop(f){return f>0&&f%10!==0;}
+
+// ═══════════════════════════════════════════
+//  C O M B A T
+// ═══════════════════════════════════════════
+function startFight(en,isBoss=false){
+  G.inC=true;G.en=en;
+  document.getElementById('combat-panel').style.display='block';
+  document.getElementById('narrative').style.display='none';
+  document.getElementById('actions').style.display='none';
+  document.getElementById('act-title').textContent='Combat:';
+  if(!isBoss){
+    addLog(`<span class="t-combat">A ${en.name} bars your path!\n${en.flavour||''}</span>`);
+  }
+  refreshCUI();clog('');
+}
+
+function ca(act){
+  if(!G.inC||!G.en)return;
+  if(G.stunned){G.stunned=false;clog('You are stunned — lose a turn!','miss');eTurn();refAll();return;}
+  tickBuffs();
+
+  if(act==='flee'){
+    const ok=G.cls==='rogue'?Math.random()<.75:Math.random()<.45;
+    if(ok){clog('You successfully flee!','spc');endFight(false,true);}
+    else{clog('Escape failed!','miss');eTurn();}
+    refAll();return;
+  }
+  let dmg=0;
+  if(act==='attack'){const r=pdmg(1,0);dmg=r.d;if(r.miss)clog('Your attack misses!','miss');else if(r.crit)clog(`💥 CRITICAL HIT — ${dmg} damage!`,'crit');else clog(`You strike for ${dmg} damage.`);}
+  if(act==='skill'){const sr=useSkill();if(!sr.ok){refAll();return;}dmg=sr.d;clog(sr.msg,'spc');}
+
+  if(dmg>0){
+    if(G.eq.accessory&&G.eq.accessory.id==='vampiric_ring'){const dr=Math.floor(dmg*.05);G.hp=Math.min(G.hp+dr,G.mhp);if(dr>0)clog(`💜 Drain: +${dr} HP`,'hl');}
+    if(G.en.shielded){dmg=Math.floor(dmg*.35);G.en.shielded=false;clog('Shadow clone absorbs most of the blow!','spc');}
+    G.en.hp-=dmg;
+    weaponProc(dmg);
+    bossPhaseCk();
+  }
+  if(G.en.hp<=0){endFight(true);return;}
+  if(G.en.frozen>0){G.en.frozen--;clog(`❄️ Enemy frozen! ${G.en.frozen} turns remain.`,'spc');}
+  else{eTurn();}
+  statusTick();
+  if(G.eq.accessory&&G.eq.accessory.id==='mana_amulet')G.mp=Math.min(G.mp+3,gMmp());
+  if(G.hp<=0){if(G.phxDown){G.phxDown=false;G.hp=Math.floor(G.mhp*.5);clog('🔥 PHOENIX DOWN — you rise from the ashes!','spc');remItem('phoenix_down');}else{gameOver();return;}}
+  refAll();
+}
+
+function tickBuffs(){if(G.bufTurns>0){G.bufTurns--;if(G.bufTurns===0){G.bufAtk=0;G.bufDef=0;clog('Combat buff expired.');}}if(G.berserk){G.bTurns--;if(G.bTurns<=0){G.berserk=false;clog('Berserker rage fades.');}}}
+function statusTick(){if(G.poisoned){const d=Math.max(1,Math.floor(G.mhp*.05));G.hp-=d;clog(`☠ Poison deals ${d} damage.`,'dmg');}if(G.bleeding){const d=Math.max(1,Math.floor(G.mhp*.03));G.hp-=d;clog(`🩸 Bleed deals ${d} damage.`,'dmg');}}
+
+function pdmg(mult=1,ignDef=0){
+  const a=gAtk(),d=Math.floor(G.en.cdef*(1-ignDef));
+  const raw=Math.max(1,a-d);const v=.85+Math.random()*.3;let dm=Math.floor(raw*v*mult);
+  const cc=(G.eq.accessory&&G.eq.accessory.id==='lucky_charm')?.25:(G.cls==='rogue'?.22:.08);
+  if(Math.random()<cc)return{d:dm*2,crit:true,miss:false};
+  if(Math.random()<.05)return{d:0,crit:false,miss:true};
+  return{d:dm,crit:false,miss:false};
+}
+
+function useSkill(){
+  switch(G.cls){
+    case'warrior':{const r=pdmg(1.5,.5);return{ok:true,d:r.d,msg:`⚔️ Warrior's Resolve — ${r.d} damage (ignores 50% DEF)!`};}
+    case'rogue':{const r=pdmg(2);const cr=Math.random()<.4;const d=cr?Math.floor(r.d*1.5):r.d;return{ok:true,d,msg:cr?`🗡️ SHADOW STRIKE — CRITICAL! ${d} damage!`:`🗡️ Shadow Strike — ${d} damage!`};}
+    case'mage':{if(G.mp<20){clog('Not enough MP!','miss');return{ok:false,d:0};}G.mp-=20;const base=G.atk+(G.eq.weapon?G.eq.weapon.atk||0:0);const foc=G.eq.accessory&&G.eq.accessory.id==='arcane_focus'?1.2:1;const d=Math.floor(base*1.8*foc);return{ok:true,d,msg:`🔮 Arcane Burst — ${d} pure magic damage! (−20 MP)`};}
+    case'paladin':{if(G.mp<15){clog('Not enough MP!','miss');return{ok:false,d:0};}G.mp-=15;const r=pdmg(1.2);G.hp=Math.min(G.hp+20,G.mhp);return{ok:true,d:r.d,msg:`✨ Holy Light — ${r.d} holy damage + 20 HP healed! (−15 MP)`};}
+    default:return{ok:false,d:0};
+  }
+}
+
+const WFX={
+  bleed:   d=>{G.en.poisoned=true;clog('🩸 Enemy is bleeding!','spc');},
+  arcane_bolt: d=>{const b=Math.floor(d*.5);G.en.hp-=b;clog(`✨ Arcane bolt — +${b} magic damage!`,'spc');},
+  holy_strike: d=>{G.en.hp-=15;clog('☀️ Holy Strike — +15 radiant damage!','spc');},
+  shadow_step: d=>clog('🌑 Shadow Step — slipping through the shadows.','spc'),
+  frost_bolt:  d=>{G.en.frozen=1;clog('❄️ Frost Bolt — enemy frozen for 1 turn!','spc');},
+  venom:   d=>{G.en.poisoned=true;clog('☠ Serpent venom applied — enemy poisoned!','spc');},
+  cleave:  d=>{const b=Math.floor(d*.5);G.en.hp-=b;clog(`🪓 Cleave — +${b} bonus damage!`,'spc');},
+  armor_break: d=>{G.en.cdef=Math.max(0,G.en.cdef-4);clog('💥 Armour Break — enemy DEF −4!','spc');},
+  chain_lightning:d=>{const b=Math.floor(d*.8);G.en.hp-=b;clog(`⚡ Chain Lightning — +${b} lightning!`,'spc');},
+  life_drain: d=>{const b=Math.floor(d*.1);G.hp=Math.min(G.hp+b,G.mhp);clog(`🩸 Life Drain — +${b} HP drained!`,'hl');},
+  earthquake: d=>{G.en.hp-=32;clog('🌍 Earthquake — 32 area damage!','spc');},
+  phase_strike:d=>clog('👻 Phase Strike — attacks through armour!','spc'),
+  arcane_storm:d=>{const b=Math.floor(d*.6);G.en.hp-=b;clog(`🌀 Arcane Storm — +${b} magic!`,'spc');},
+  sundering:  d=>{G.en.cdef=Math.floor(G.en.cdef*.5);clog('⚔️ Sundering — enemy DEF halved!','spc');},
+  void_rend:  d=>{const b=Math.floor(d*.4);G.en.hp-=b;G.hp=Math.min(G.hp+Math.floor(b*.3),G.mhp);clog(`🌌 Void Rend — +${b} void damage!`,'spc');},
+  aetheric_blast:d=>{const b=Math.floor(G.atk*3);G.en.hp-=b;clog(`💎 AETHERIC BLAST — ${b} pure Aelorian power!`,'crit');},
+};
+function weaponProc(d){if(!G.eq.weapon||!G.eq.weapon.special||Math.random()>.28)return;const fn=WFX[G.eq.weapon.special];if(fn)fn(d);}
+
+function eTurn(){
+  const e=G.en;const v=.8+Math.random()*.4;const raw=Math.max(1,e.catk-gDef());let d=Math.floor(raw*v);
+  if(e.phases&&Math.random()<.22){const sp=bSpec(e);if(sp){sp();return;}}
+  if(Math.random()<.07)clog(`${e.name} misses!`,'miss');
+  else{G.hp-=d;clog(`${e.name} strikes for ${d} damage.`,'dmg');if(e.type==='beast'&&Math.random()<.12){G.poisoned=true;clog(`${e.name} poisons you!`,'dmg');}}
+  if(e.poisoned){const pd=Math.max(1,Math.floor(e.mhp*.04));e.hp-=pd;clog(`☠ Enemy bleeds — ${pd} damage.`,'spc');}
+}
+
+function bSpec(e){
+  const M={
+    'The Tomb Sentinel':[
+      ()=>{const d=Math.max(0,Math.floor(e.catk*1.5-gDef()*.8));G.hp-=d;clog(`💥 SHIELD BASH — ${d} damage!`,'bs');},
+      ()=>{G.def=Math.max(0,G.def-3);clog('TOMB SHOUT — your DEF permanently −3!','bs');},
+    ],
+    'Arachnathos, the Brood Mother':[
+      ()=>{G.bufAtk-=4;G.bufTurns=2;clog('WEB SHOT — your ATK −4 for 2 turns!','bs');},
+      ()=>{G.poisoned=true;const d=Math.max(0,Math.floor(e.catk*1.2-gDef()));G.hp-=d;clog(`VENOM BITE — poisoned + ${d} damage!`,'bs');},
+    ],
+    'Morketh the Unbound':[
+      ()=>{const d=Math.max(5,Math.floor(e.catk*2-gDef()*.4));G.hp-=d;clog(`VOID BOLT — ${d} arcane damage!`,'bs');},
+      ()=>{G.bufAtk-=6;G.bufTurns=2;clog('ARCANE CURSE — ATK halved for 2 turns!','bs');},
+    ],
+    'Verath, the Void Drake':[
+      ()=>{const d=Math.max(10,Math.floor(e.catk*2.2-gDef()*.2));G.hp-=d;clog(`VOID FIRE BREATH — ${d} void fire damage!`,'bs');},
+      ()=>{G.stunned=true;const d=Math.floor(e.catk*.8);G.hp-=d;clog(`TAIL SWIPE — ${d} damage + you lose your next action!`,'bs');},
+    ],
+    'Malachar, the Shadow Archon':[
+      ()=>{const d=Math.max(8,Math.floor(e.catk*1.8-gDef()*.4));G.hp-=d;clog(`SHADOW BOLT — ${d} shadow damage!`,'bs');},
+      ()=>{const md=Math.min(G.mp,25);G.mp-=md;clog(`VOID DRAIN — ${md} MP stolen!`,'bs');},
+      ()=>{if(Math.random()<.12&&!G.phxDown){G.hp=0;clog('DEATH TOUCH — instant death!','crit');}else{const d=Math.floor(e.catk*1.4);G.hp-=d;clog(`Death Touch resisted — ${d} damage.`,'dmg');}},
+      ()=>{e.shielded=true;clog('SHADOW CLONE — the next strike is largely absorbed!','bs');},
+    ],
+  };
+  const list=M[e.name];if(!list)return null;
+  const fn=list[Math.floor(Math.random()*list.length)];
+  clog(`💀 ${e.name} — special attack!`,'bs');
+  return fn;
+}
+
+function bossPhaseCk(){
+  if(!G.en||!G.en.phases)return;
+  const r=G.en.hp/G.en.mhp;const phases=G.en.phases;const i=G.en.phaseIdx;
+  if(i<phases.length&&r<=phases[i].threshold){
+    const ph=phases[i];G.en.phaseIdx++;
+    clog(`⚠ ${ph.msg}`,'bs');addLog(`<span class="t-boss">⚠ ${ph.msg}</span>`);
+    G.en.catk=Math.floor(G.en.atk*(1+(ph.atkMod||0)));
+    G.en.cdef=Math.floor(G.en.def*(1+(ph.defMod||0)));
+    if(ph.dmgBurst){G.hp-=ph.dmgBurst;clog(`💥 ${ph.dmgBurst} BURST DAMAGE!`,'crit');}
+  }
+}
+
+function endFight(win,fled=false){
+  G.inC=false;G.poisoned=false;G.bleeding=false;G.stunned=false;
+  document.getElementById('combat-panel').style.display='none';
+  document.getElementById('narrative').style.display='block';
+  document.getElementById('actions').style.display='flex';
+  if(fled){addLog('<span class="t-system">You escape into the corridor, heart hammering.</span>');renderFloor();refAll();return;}
+  if(win&&G.en){
+    G.kills++;const e=G.en;
+    let gold=Array.isArray(e.gold)?Math.floor(e.gold[0]+Math.random()*(e.gold[1]-e.gold[0])):e.gold||0;
+    G.gold+=gold;gainXP(e.xp||0);
+    let lootMsg='';
+    if(e.drops){
+      const di=e.drops[Math.floor(Math.random()*e.drops.length)];
+      const it=ALL[di];if(it){addItem(it);lootMsg=`${it.icon} ${it.name}`;}
+      G.bd.push(G.floor);
+      addLog(`<span class="t-boss">⚔ BOSS DEFEATED: ${e.name}</span>`);
+      addLog(`<span class="t-loot">Spoils: ${lootMsg} | +${gold} gold | +${e.xp} XP</span>`);
+      addLog(`<span class="t-lore">${e.lore||''}</span>`);
+      if(G.floor===50){showVictory();return;}
+    } else {
+      if(e.loot&&e.loot.length&&Math.random()<.35){const it=ALL[e.loot[Math.floor(Math.random()*e.loot.length)]];if(it){addItem(it);lootMsg=` | Found: ${it.icon} ${it.name}`;}}
+      addLog(`<span class="t-loot">Defeated ${e.name}. +${gold} gold, +${e.xp} XP${lootMsg}.</span>`);
+    }
+  }
+  G.en=null;renderFloor();refAll();checkQ();
+}
+
+function gameOver(){
+  G.inC=false;
+  document.getElementById('combat-panel').style.display='none';
+  document.getElementById('narrative').style.display='block';
+  document.getElementById('actions').style.display='flex';
+  document.getElementById('go-msg').textContent=`You fell to ${G.en?G.en.name:'the darkness'} on Floor ${G.floor}. Level ${G.lv}. ${G.kills} enemies slain. The dungeon swallows you whole, and Thornwall waits in vain.`;
+  document.getElementById('go-modal').style.display='flex';
+}
+
+function showVictory(){
+  document.getElementById('win-msg').textContent=BOSSES[50].lore+`\n\nFloor 50 reached. Level ${G.lv}. ${G.kills} creatures slain. The Maw is silent for the first time in five centuries.`;
+  document.getElementById('win-modal').style.display='flex';
+}
+
+// ═══════════════════════════════════════════
+//  P O T I O N  U S E
+// ═══════════════════════════════════════════
+function usePotion(id,inBattle=false){
+  const s=G.inv.find(s=>s.item.id===id);if(!s||s.qty<=0)return;
+  const p=s.item;let msg='',ok=true;
+  switch(p.effect){
+    case'heal':{const h=Math.min(p.value,G.mhp-G.hp);G.hp+=h;msg=`You drink the ${p.name} and recover ${h} HP.`;break;}
+    case'heal_full':G.hp=G.mhp;G.mp=gMmp();msg='The Void Essence courses through you — HP and MP fully restored.';break;
+    case'mana':{const m=Math.min(p.value,gMmp()-G.mp);G.mp+=m;msg=`Recovered ${m} MP.`;break;}
+    case'cure':G.poisoned=false;G.bleeding=false;msg='The antidote clears your bloodstream.';break;
+    case'buff_atk':G.bufAtk+=p.value;G.bufTurns=Math.max(G.bufTurns,3);msg=`Strength Brew — ATK +${p.value} for 3 turns.`;break;
+    case'buff_def':G.bufDef+=p.value;G.bufTurns=Math.max(G.bufTurns,3);msg=`Iron Skin — DEF +${p.value} for 3 turns.`;break;
+    case'berserk':G.berserk=true;G.bTurns=4;msg='BERSERKER RAGE — ATK +10, DEF −5, lasts 4 turns.';break;
+    case'revive':G.phxDown=true;msg='Phoenix Down held ready — death will not claim you once.';break;
+    case'damage_enemy':if(!inBattle||!G.en){ok=false;msg='No target.';break;}G.en.hp-=p.value;clog(`🔥 Liquid Fire — ${p.value} fire damage!`,'dmg');if(G.en.hp<=0){remItem(id);endFight(true);return;}msg=`Liquid Fire scorches the enemy for ${p.value} damage.`;break;
+    case'freeze':if(!inBattle||!G.en){ok=false;msg='No target.';break;}G.en.frozen=p.value;clog(`❄️ Frozen Tear — enemy frozen for ${p.value} turns.`,'spc');msg='The Frozen Tear shatters against your enemy.';break;
+    case'flee_sure':if(!inBattle){ok=false;msg='Not in combat.';break;}remItem(id);addLog('<span class="t-system">The smoke bomb detonates. You are gone.</span>');endFight(false,true);return;
+    default:ok=false;msg='Nothing happens.';
+  }
+  if(ok)remItem(id);
+  addLog(`<span class="t-${ok?'heal':'system'}">${msg}</span>`);
+  refAll();
+}
+
+function openCombatItem(){
+  const usable=G.inv.filter(s=>s.item.type==='potion'&&s.qty>0&&s.item.effect!=='flee_sure');
+  if(!usable.length){clog('No usable items.','miss');return;}
+  document.getElementById('im-icon').textContent='🧪';
+  document.getElementById('im-name').textContent='Use Item in Combat';
+  document.getElementById('im-desc').textContent='Choose an item to use now:';
+  document.getElementById('im-stats').textContent='';
+  const acts=document.getElementById('im-acts');acts.innerHTML='';
+  usable.forEach(s=>{
+    const b=document.createElement('button');b.className='iact';b.textContent=`${s.item.icon} ${s.item.name} (×${s.qty})`;
+    b.onclick=()=>{closeModal('item-modal');usePotion(s.item.id,true);if(G.inC&&G.en){eTurn();refAll();}};
+    acts.appendChild(b);
+  });
+  document.getElementById('item-modal').style.display='flex';
+}
+
+// ═══════════════════════════════════════════
+//  E Q U I P
+// ═══════════════════════════════════════════
+function equipItem(item){
+  const slot=item.type;if(!['weapon','armor','accessory'].includes(slot))return;
+  const old=G.eq[slot];G.eq[slot]=item;remItem(item.id);if(old)addItem(old);
+  G.mp=Math.min(G.mp,gMmp());
+  addLog(`<span class="t-system">Equipped ${item.icon} ${item.name}.</span>`);
+  closeModal('item-modal');refAll();
+}
+function unequip(slot){
+  const it=G.eq[slot];if(!it)return;G.eq[slot]=null;addItem(it);
+  G.mp=Math.min(G.mp,gMmp());
+  addLog(`<span class="t-system">Unequipped ${it.icon} ${it.name}.</span>`);refAll();
+}
+function sellItem(id){
+  const s=G.inv.find(s=>s.item.id===id);if(!s)return;
+  const pr=Math.floor((s.item.price||10)*.4);G.gold+=pr;remItem(id);
+  addLog(`<span class="t-loot">Sold ${s.item.icon} ${s.item.name} for ${pr} gold.</span>`);
+  closeModal('item-modal');refAll();checkQ();
+}
+
+// ═══════════════════════════════════════════
+//  R E N D E R
+// ═══════════════════════════════════════════
+function renderFloor(){
+  const f=G.floor;
+  // Location header
+  document.getElementById('loc-name').textContent=`Floor ${f} — ${fname(f)}`;
+  const badge=document.getElementById('loc-badge');
+  if(f===0){badge.textContent='VILLAGE';badge.className='loc-badge village';}
+  else if(isBoss(f)){badge.textContent='⚠ BOSS';badge.className='loc-badge boss';}
+  else if(f>=40){badge.textContent='ABYSS';badge.className='loc-badge abyss';}
+  else{badge.textContent='DUNGEON';badge.className='loc-badge dungeon';}
+
+  // Lore entry
+  if(FLOOR_LORE[f]){
+    addLog(`<span class="t-sep">─── ─── ─── ─── ───</span>`);
+    addLog(`<span class="t-lore">${FLOOR_LORE[f].replace(/\n/g,'<br><br>')}</span>`);
+  }
+
+  // Boss warning
+  if(isBoss(f)&&!G.bd.includes(f)){
+    const bw=BOSSES[f];
+    addLog(`<span class="t-warn">⚠ You sense a powerful presence ahead. The air is wrong. Something ancient and furious waits on this floor.</span>`);
+  }
+
+  buildActions();
+}
+
+function fname(f){
+  if(f===0)return'Thornwall Village';if(f<=9)return'The Upper Maw';if(f<=19)return'The Broken Kingdom';
+  if(f<=29)return'The Sunken Ruins';if(f<=39)return'The Void Reaches';if(f<=49)return"The Archon's Domain";return'The Fallen Throne';
+}
+
+function buildActions(){
+  const el=document.getElementById('actions');el.innerHTML='';
+  document.getElementById('act-title').textContent='What do you do?';
+  const f=G.floor;
+  if(f===0){
+    mk(el,'💬 Speak with Elder Mira',()=>openNPC('elder_mira'));
+    mk(el,'🔨 Visit Gorath the Smith',()=>openNPC('blacksmith_gorath'));
+    mk(el,'🩹 Visit Lysa the Healer',()=>openNPC('healer_lysa'));
+    mk(el,'📜 Find Scholar Vex',()=>openNPC('scholar_vex'));
+    mk(el,'👻 The Aelorian Shade (village outskirts)',()=>openNPC('dungeon_ghost'));
+    mk(el,'🔪 Check your equipment','eq');
+    mk(el,'⬇️ Descend into the Maw',()=>{addLog('<span class="t-system">You step into the darkness. The iron doors groan shut behind you.</span>');go(1);});
+  } else if(isBoss(f)){
+    if(!G.bd.includes(f)){
+      const bd=document.createElement('div');bd.className='boss-warn';bd.innerHTML=`⚠ ${BOSSES[f]?BOSSES[f].name:'The Boss'} awaits beyond this threshold`;el.appendChild(bd);
+      mk(el,'⚔️ Face the boss — push through the seal',()=>{addLog(`<span class="t-boss">${(BOSSES[f].intro||'').replace(/\n/g,'<br><br>')}</span>`);startFight(spawnBoss(f),true);},'danger');
+    } else {
+      mk(el,`✅ Seal broken — press deeper (Floor ${f+1})`,()=>go(f+1));
+    }
+    if(f<50)mk(el,'🔍 Search the area for remnants',()=>search());
+    mk(el,`⬆️ Retreat to Floor ${f-1}`,()=>go(f-1));
+  } else {
+    mk(el,'⚔️ Explore — press forward and fight',()=>{const en=spawnEnemy();startFight(en,false);});
+    if(isShop(f))mk(el,'🏪 Find the floor trader',()=>openShop(f),'special');
+    if(f<=10)mk(el,'👻 A shade drifts nearby...',()=>openNPC('dungeon_ghost'));
+    mk(el,'🔍 Search the shadows',()=>search());
+    mk(el,`⬇️ Descend to Floor ${f+1}`,()=>go(f+1));
+    mk(el,`⬆️ Climb back to Floor ${f-1}`,()=>go(f-1));
+  }
+}
+
+function mk(el,text,action,cls=''){
+  const b=document.createElement('button');b.className='abtn'+(cls?' '+cls:'');b.textContent=text;
+  if(action==='eq'){b.onclick=()=>{tab('equipment',document.querySelectorAll('.tabbtn')[1]);};}
+  else if(typeof action==='function')b.onclick=action;
+  el.appendChild(b);
+}
+
+function go(floor){
+  if(floor<0||floor>50)return;
+  G.floor=floor;
+  if(G.cls==='paladin'&&floor>0&&floor%3===0){const h=15;G.hp=Math.min(G.hp+h,G.mhp);addLog(`<span class="t-heal">Your holy aura stirs — you recover ${h} HP.</span>`);}
+  renderFloor();refAll();checkQ();
+}
+
+function search(){
+  const r=Math.random();
+  if(r<.14){const g=Math.floor(5+G.floor*1.5+Math.random()*12);G.gold+=g;addLog(`<span class="t-loot">In a crack in the wall, beneath a loose stone, behind the cold metal of a broken bracket — you find ${g} gold coins.</span>`);}
+  else if(r<.28){const pots=[POTIONS.healing_salve,POTIONS.mana_vial,POTIONS.antidote];const p=pots[Math.floor(Math.random()*pots.length)];addItem(p);addLog(`<span class="t-loot">Wedged into a dark corner: ${p.icon} ${p.name}. Someone left it here, or dropped it fleeing. You take it.</span>`);}
+  else if(r<.35){addLog('<span class="t-combat">Something in the dark was waiting. You\'ve found more than you bargained for.</span>');startFight(spawnEnemy());}
+  else{const msgs=["The corridor offers nothing but cold stone and old shadows.","Dust. Old bones. The ghost of a smell you can't identify. Nothing useful.","You find only darkness, and the sense that it is very slightly watching you back.","There are carvings here. Old Aelorian text, worn smooth. You can almost make out a word. Almost.","The floor groans beneath your weight. Something shifts in the walls. Then: silence.","A footprint in the dust. Old, but clear. Someone was here before you. Didn't come back.","You find a journal page, illegible with age. You can make out one word: 'Deeper.'"];addLog(`<span class="t-system">${msgs[Math.floor(Math.random()*msgs.length)]}</span>`);}
+  refAll();checkQ();
+}
+
+function addLog(html){
+  const el=document.getElementById('narrative');
+  const div=document.createElement('div');div.className='n-entry';div.innerHTML=html;
+  el.appendChild(div);el.scrollTop=el.scrollHeight;
+}
+
+function clog(msg,cls=''){
+  if(!msg)return;
+  const el=document.getElementById('clog');
+  const p=document.createElement('p');p.className=cls;p.textContent=msg;
+  el.appendChild(p);el.scrollTop=el.scrollHeight;
+}
+
+// ═══════════════════════════════════════════
+//  S I D E B A R / U I
+// ═══════════════════════════════════════════
+function refAll(){
+  const mmp=gMmp();
+  document.getElementById('hport').textContent=CB[G.cls].pt;
+  document.getElementById('hname-d').textContent=G.name;
+  document.getElementById('hclass-d').textContent=G.cls.charAt(0).toUpperCase()+G.cls.slice(1)+' · Level '+G.lv;
+  document.getElementById('s-hp').style.width=(G.hp/G.mhp*100)+'%';
+  document.getElementById('sv-hp').textContent=`${G.hp}/${G.mhp}`;
+  document.getElementById('s-mp').style.width=(G.mp/mmp*100)+'%';
+  document.getElementById('sv-mp').textContent=`${G.mp}/${mmp}`;
+  document.getElementById('s-xp').style.width=(G.xp/G.xpn*100)+'%';
+  document.getElementById('sv-xp').textContent=`${G.xp}/${G.xpn}`;
+  document.getElementById('ms-atk').textContent=gAtk();
+  document.getElementById('ms-def').textContent=gDef();
+  document.getElementById('ms-gold').textContent=G.gold;
+  document.getElementById('ms-kills').textContent=G.kills;
+  renderInv();renderEq();
+  if(G.inC&&G.en)refreshCUI();
+  if(document.getElementById('shop-modal').style.display!=='none')document.getElementById('shop-gold').textContent=G.gold;
+}
+
+function refreshCUI(){
+  if(!G.en)return;
+  const e=G.en;
+  document.getElementById('cp-name').textContent=G.name;
+  document.getElementById('cp-icon').textContent=CB[G.cls].pt;
+  document.getElementById('cp-bar').style.width=Math.max(0,G.hp/G.mhp*100)+'%';
+  document.getElementById('cp-hp').textContent=`${Math.max(0,G.hp)}/${G.mhp}`;
+  document.getElementById('cp-status').textContent=(G.poisoned?'☠ ':'')+( G.berserk?'🔴 ':'')+( G.phxDown?'🔥 ':'')+( G.stunned?'💫 ':'');
+  document.getElementById('ce-name').textContent=e.name;
+  document.getElementById('ce-icon').textContent=e.icon;
+  document.getElementById('ce-bar').style.width=Math.max(0,e.hp/e.mhp*100)+'%';
+  document.getElementById('ce-hp').textContent=`${Math.max(0,e.hp)}/${e.mhp}`;
+  document.getElementById('ce-status').textContent=(e.poisoned?'☠ ':'')+( e.frozen>0?'❄️ ':'');
+}
+
+function renderInv(){
+  const g=document.getElementById('inv-grid');g.innerHTML='';
+  G.inv.forEach(s=>{
+    const c=document.createElement('div');
+    const rl=s.item.rarity==='legendary'?'legendary':'';
+    c.className='icell '+s.item.type+' '+rl;
+    c.textContent=s.item.icon;
+    if(s.qty>1){const q=document.createElement('span');q.className='iqty';q.textContent=s.qty;c.appendChild(q);}
+    c.onclick=()=>openItemModal(s.item);
+    g.appendChild(c);
+  });
+  const pad=Math.max(24,G.inv.length+4);
+  for(let i=G.inv.length;i<pad;i++){const c=document.createElement('div');c.className='icell empty';c.textContent='·';g.appendChild(c);}
+}
+
+function renderEq(){
+  ['weapon','armor','accessory'].forEach(slot=>{
+    const it=G.eq[slot];
+    const rc=it?'rc ru rr re rl'.split(' ')[['common','uncommon','rare','epic','legendary'].indexOf(it.rarity)]:'';
+    document.getElementById('e-'+slot).innerHTML=it?`${it.icon} <span class="${rc}">${it.name}</span>`:'— empty —';
+  });
+  let s='';
+  ['weapon','armor','accessory'].forEach(sl=>{
+    const it=G.eq[sl];if(!it)return;
+    const rc='rc ru rr re rl'.split(' ')[['common','uncommon','rare','epic','legendary'].indexOf(it.rarity)];
+    s+=`${sl.charAt(0).toUpperCase()+sl.slice(1)}: ${it.name}`;
+    const parts=[];
+    if(it.atk)parts.push(`ATK+${it.atk}`);if(it.def)parts.push(`DEF+${it.def}`);if(it.mp)parts.push(`MP+${it.mp}`);
+    if(it.special)parts.push(`proc: ${it.special.replace(/_/g,' ')}`);
+    if(parts.length)s+=' ('+parts.join(', ')+')';
+    s+='\n';
+  });
+  document.getElementById('ebonus').textContent=s||'No equipment equipped.';
+}
+
+function openItemModal(item){
+  const rc={'common':'rc','uncommon':'ru','rare':'rr','epic':'re','legendary':'rl'}[item.rarity]||'rc';
+  document.getElementById('im-icon').textContent=item.icon;
+  document.getElementById('im-name').innerHTML=`<span class="${rc}">${item.name}</span>`;
+  document.getElementById('im-desc').textContent=item.desc||'';
+  let st=`Rarity: ${item.rarity||'common'} | Type: ${item.type}`;
+  if(item.atk)st+=`\nATK bonus: +${item.atk}`;if(item.def)st+=`\nDEF bonus: +${item.def}`;if(item.mp)st+=`\nMP bonus: +${item.mp}`;
+  if(item.special)st+=`\nWeapon proc: ${item.special.replace(/_/g,' ')} (28% chance on hit)`;
+  if(item.value&&item.type==='potion')st+=`\nEffect value: ${item.value}`;
+  if(item.price)st+=`\nBuy: ${item.price}g  |  Sell: ${Math.floor(item.price*.4)}g`;
+  document.getElementById('im-stats').textContent=st;
+  const acts=document.getElementById('im-acts');acts.innerHTML='';
+  if(['weapon','armor','accessory'].includes(item.type)){const b=doc('button','iact','⚔️ Equip this',()=>{closeModal('item-modal');equipItem(item);});acts.appendChild(b);}
+  if(item.type==='potion'){const b=doc('button','iact','🧪 Use',()=>{closeModal('item-modal');usePotion(item.id,G.inC);});acts.appendChild(b);}
+  if(item.price&&item.price>0){const b=doc('button','iact',`💰 Sell (${Math.floor(item.price*.4)}g)`,()=>sellItem(item.id));acts.appendChild(b);}
+  document.getElementById('item-modal').style.display='flex';
+}
+
+function doc(tag,cls,text,fn){const el=document.createElement(tag);el.className=cls;el.textContent=text;el.onclick=fn;return el;}
+
+// ═══════════════════════════════════════════
+//  S H O P
+// ═══════════════════════════════════════════
+function openShop(floor){
+  const inv=shopFor(floor||G.floor);
+  document.getElementById('shop-title').textContent=`🏪 Floor ${G.floor} Trader`;
+  document.getElementById('shop-gold').textContent=G.gold;
+  const el=document.getElementById('shop-items');el.innerHTML='';
+  inv.forEach(item=>{
+    const rc={'common':'rc','uncommon':'ru','rare':'rr','epic':'re','legendary':'rl'}[item.rarity]||'rc';
+    const div=document.createElement('div');div.className='sitem';
+    div.innerHTML=`<div class="sicon">${item.icon}</div><div class="sinfo"><div class="sname"><span class="${rc}">${item.name}</span></div><div class="sdesc">${item.desc}</div></div><div class="sprice">${item.price}g</div>`;
+    div.onclick=()=>buyItem(item);el.appendChild(div);
+  });
+  document.getElementById('shop-modal').style.display='flex';
+}
+
+function buyItem(item){
+  if(G.gold<item.price){addLog('<span class="t-system">Not enough gold.</span>');return;}
+  G.gold-=item.price;G.spent+=item.price;addItem(item);
+  addLog(`<span class="t-loot">Purchased ${item.icon} ${item.name} for ${item.price} gold.</span>`);
+  document.getElementById('shop-gold').textContent=G.gold;
+  refAll();checkQ();
+}
+
+// ═══════════════════════════════════════════
+//  N P C
+// ═══════════════════════════════════════════
+function openNPC(id){
+  const npc=NPCS[id];if(!npc)return;
+  document.getElementById('nm-icon').textContent=npc.icon;
+  document.getElementById('nm-name').textContent=npc.name;
+  document.getElementById('nm-dial').innerHTML=npc.dial.replace(/\n/g,'<br><br>');
+  const opts=document.getElementById('nm-opts');opts.innerHTML='';
+  if(npc.opts)npc.opts.forEach(o=>{
+    const b=document.createElement('button');b.className='nopt';b.textContent=o.t;
+    b.onclick=()=>{
+      document.getElementById('nm-dial').innerHTML=o.r.replace(/\n/g,'<br><br>');
+      if(o.heal){const h=30;G.hp=Math.min(G.hp+h,G.mhp);addLog(`<span class="t-heal">Lysa tends your wounds carefully. You recover ${h} HP.</span>`);refAll();}
+    };
+    opts.appendChild(b);
+  });
+  document.getElementById('npc-modal').style.display='flex';
+}
+
+// ═══════════════════════════════════════════
+//  Q U E S T S
+// ═══════════════════════════════════════════
+function checkQ(){
+  QUESTS.forEach(q=>{if(!G.qc.includes(q.id)&&q.done(G)){G.qc.push(q.id);addLog(`<span class="t-loot">📜 Quest Complete: "${q.title}"</span>`);}});
+  renderQuests();
+}
+function renderQuests(){
+  const el=document.getElementById('quest-list');if(!el)return;el.innerHTML='';
+  QUESTS.forEach(q=>{
+    const done=G.qc.includes(q.id);
+    const d=document.createElement('div');d.className='qitem';
+    d.innerHTML=`<div class="qtitle">${done?'✅':'📜'} ${q.title}</div><div class="qdesc">${q.desc}</div><div class="qstat ${done?'done':'act'}">${done?'COMPLETE':'Active'}</div>`;
+    el.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  U T I L
+// ═══════════════════════════════════════════
+function closeModal(id){document.getElementById(id).style.display='none';}
+function tab(name,btn){
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('act'));
+  document.getElementById('tab-'+name).classList.add('act');
+  if(btn)btn.classList.add('act');
+}
+
+// ═══════════════════════════════════════════
+//  G A M E  F L O W
+// ═══════════════════════════════════════════
+function showNameScreen(){
+  document.getElementById('intro-screen').style.display='none';
+  document.getElementById('name-screen').style.display='flex';
+}
+function pickClass(el,cls){document.querySelectorAll('.cls').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');selCls=cls;}
+
+function startGame(){
+  const nm=document.getElementById('hname').value.trim()||'Brave Soul';
+  G=newG(nm,selCls);
+  const b=CB[selCls];
+  // Starting gear
+  if(selCls==='warrior')addItem(WEAPONS.rusty_sword);
+  if(selCls==='rogue')  addItem(WEAPONS.iron_dagger);
+  if(selCls==='mage')   addItem(WEAPONS.oak_staff);
+  if(selCls==='paladin')addItem(WEAPONS.rusty_sword);
+  addItem(ARMORS.tattered_robe);
+  addItem(POTIONS.healing_salve,3);
+  addItem(POTIONS.mana_vial,2);
+
+  document.getElementById('name-screen').style.display='none';
+  document.getElementById('game-screen').style.display='grid';
+
+  renderFloor();refAll();renderQuests();
+  addLog('<span class="t-sep">─── ─── ─── ─── ───</span>');
+  addLog(`<span class="t-lore">Your journey begins. Thornwall watches you go with eyes full of complicated hope. The iron doors of the Maw stand open before you.</span>`);
+  addLog(`<span class="t-system">Speak to the villagers for wisdom and lore. Check your gear in the Equip tab. When ready — descend.</span>`);
+}
+
+function restartGame(){
+  document.querySelectorAll('.modal-bg').forEach(m=>m.style.display='none');
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('intro-screen').style.display='flex';
+  document.getElementById('narrative').innerHTML='';
+}
+</script>
+</body>
+</html>

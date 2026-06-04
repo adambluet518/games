@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dragon Quest - 20 Levels</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: 'Press Start 2P', monospace;
+    overflow: hidden;
+  }
+
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 800px;
+    padding: 8px 0;
+    color: #fff;
+    font-size: 9px;
+    text-shadow: 0 0 8px currentColor;
+  }
+
+  #levelLabel { color: #ffd700; }
+  #livesLabel { color: #ff6b6b; }
+  #scoreLabel { color: #7ef7a0; }
+
+  #gameCanvas {
+    border: 3px solid #333;
+    image-rendering: pixelated;
+    display: block;
+    box-shadow: 0 0 40px rgba(255,200,0,0.15);
+  }
+
+  #msgOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    z-index: 10;
+  }
+
+  #msgOverlay h1 {
+    color: #ffd700;
+    font-size: 20px;
+    text-shadow: 0 0 20px #ffa500;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  #msgOverlay p {
+    color: #aaa;
+    font-size: 8px;
+    text-align: center;
+    line-height: 2;
+  }
+
+  #msgOverlay button {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 12px 24px;
+    background: #ffd700;
+    color: #000;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  #msgOverlay button:hover { transform: scale(1.05); }
+
+  #controls {
+    width: 800px;
+    text-align: center;
+    color: #444;
+    font-size: 7px;
+    padding: 6px 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <span id="levelLabel">LEVEL 1</span>
+  <span id="livesLabel">♥ ♥ ♥</span>
+  <span id="scoreLabel">SCORE: 0</span>
+</div>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<div id="controls">← → MOVE &nbsp;|&nbsp; SPACE / ↑ JUMP &nbsp;|&nbsp; DOUBLE JUMP ALLOWED</div>
+
+<div id="msgOverlay">
+  <h1>⚔ DRAGON QUEST ⚔</h1>
+  <p>Fight through 20 treacherous levels<br>and slay the mighty dragon!<br><br>← → to move &nbsp;|&nbsp; SPACE / ↑ to jump<br>Double jump allowed!</p>
+  <button onclick="startGame()">START QUEST</button>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = 800, H = 400;
+
+// ─── LEVEL DEFINITIONS ───────────────────────────────────────────────────────
+// Each level: { bg, platforms[], enemies[], coins[], theme }
+// Platform: [x, y, w, h]
+// Enemy: {x, y, w:32, h:32, speed, range}
+// Coin: {x, y}
+// Boss level (21) is handled separately
+
+function makeLevels() {
+  const levels = [];
+
+  // Helper colors
+  const themes = [
+    { sky:'#87ceeb', ground:'#4a7c3f', plat:'#6b4f2a', accent:'#ffd700' }, // 1 meadow
+    { sky:'#1a1a2e', ground:'#2d2d44', plat:'#4a3f6b', accent:'#9b59b6' }, // 2 cave
+    { sky:'#ff7f50', ground:'#8b4513', plat:'#a0522d', accent:'#ff4500' }, // 3 desert
+    { sky:'#00ced1', ground:'#006994', plat:'#1e90ff', accent:'#00ffff' }, // 4 ice
+    { sky:'#2d5016', ground:'#1a3008', plat:'#3d6b1a', accent:'#7fff00' }, // 5 jungle
+    { sky:'#4a0080', ground:'#200040', plat:'#6a0dad', accent:'#ff00ff' }, // 6 magic
+    { sky:'#ff6600', ground:'#cc3300', plat:'#ff3300', accent:'#ffaa00' }, // 7 volcano
+    { sky:'#c0c0c0', ground:'#808080', plat:'#a0a0a0', accent:'#ffffff' }, // 8 cloud
+    { sky:'#001f3f', ground:'#002b5c', plat:'#003f7f', accent:'#00bfff' }, // 9 deep sea
+    { sky:'#3d0000', ground:'#5c0000', plat:'#7a0000', accent:'#ff2200' }, // 10 hellfire
+    { sky:'#e8d5a3', ground:'#c4a35a', plat:'#b8860b', accent:'#ffd700' }, // 11 ruins
+    { sky:'#0d0d0d', ground:'#1a1a1a', plat:'#333333', accent:'#00ff88' }, // 12 cyber
+    { sky:'#87ceeb', ground:'#5f9ea0', plat:'#708090', accent:'#f0e68c' }, // 13 fortress
+    { sky:'#2e0057', ground:'#4b0082', plat:'#8b008b', accent:'#ee82ee' }, // 14 witch
+    { sky:'#005500', ground:'#003300', plat:'#004400', accent:'#00ff00' }, // 15 poison
+    { sky:'#ffc0cb', ground:'#ff69b4', plat:'#ff1493', accent:'#ffffff' }, // 16 candy
+    { sky:'#1c2833', ground:'#273746', plat:'#2e4057', accent:'#5dade2' }, // 17 abyss
+    { sky:'#ffd700', ground:'#ff8c00', plat:'#ff4500', accent:'#fff8dc' }, // 18 golden
+    { sky:'#e8f8ff', ground:'#b0e0e6', plat:'#87ceeb', accent:'#f0fff0' }, // 19 heaven
+    { sky:'#0a0000', ground:'#1a0000', plat:'#2a0000', accent:'#cc0000' }, // 20 dragon lair
+  ];
+
+  const levelTemplates = [
+    // 1 - simple intro
+    { platforms:[[0,360,800,40],[200,290,120,16],[400,230,120,16],[600,280,120,16]], enemies:[{x:220,y:258,speed:1.2,range:80}], coins:[{x:250,y:265},{x:440,y:205},{x:630,y:255}] },
+    // 2 - cave stepping stones
+    { platforms:[[0,360,200,40],[250,320,100,16],[400,280,100,16],[550,300,100,16],[700,360,100,40],[0,360,50,40]], enemies:[{x:410,y:248,speed:1.5,range:60}], coins:[{x:280,y:295},{x:430,y:255},{x:570,y:275}] },
+    // 3 - desert gaps
+    { platforms:[[0,360,160,40],[220,360,160,40],[440,360,160,40],[660,360,140,40],[150,280,120,16],[380,240,100,16],[610,260,100,16]], enemies:[{x:460,y:328,speed:2,range:120},{x:680,y:328,speed:1.5,range:100}], coins:[{x:180,y:255},{x:400,y:215},{x:640,y:235}] },
+    // 4 - ice platforms staggered
+    { platforms:[[0,360,120,40],[180,310,100,16],[340,260,100,16],[500,300,100,16],[660,240,120,16],[0,360,40,40],[760,360,40,40]], enemies:[{x:200,y:278,speed:2.5,range:60},{x:510,y:268,speed:2,range:80}], coins:[{x:220,y:285},{x:370,y:235},{x:690,y:215}] },
+    // 5 - jungle multi-height
+    { platforms:[[0,360,800,40],[100,300,80,16],[250,250,80,16],[400,200,80,16],[550,250,80,16],[680,300,80,16],[170,160,80,16],[480,150,80,16]], enemies:[{x:110,y:268,speed:1.8,range:50},{x:560,y:218,speed:2,range:60}], coins:[{x:130,y:275},{x:260,y:225},{x:410,y:175},{x:500,y:125}] },
+    // 6 - magic floating
+    { platforms:[[0,380,100,20],[150,330,80,16],[300,270,80,16],[450,220,80,16],[600,270,80,16],[700,310,100,20],[350,160,80,16]], enemies:[{x:460,y:188,speed:3,range:50}], coins:[{x:160,y:305},{x:310,y:245},{x:460,y:195},{x:620,y:245}] },
+    // 7 - volcano stairs right
+    { platforms:[[0,360,120,40],[0,300,80,16],[0,240,80,16],[140,300,100,16],[280,250,100,16],[420,200,100,16],[560,250,100,16],[680,300,120,16],[680,360,120,40]], enemies:[{x:430,y:168,speed:2.5,range:80},{x:290,y:218,speed:2,range:60}], coins:[{x:50,y:215},{x:180,y:275},{x:300,y:225},{x:440,y:175}] },
+    // 8 - cloud pillars
+    { platforms:[[0,380,150,20],[200,340,100,16],[200,280,100,16],[200,220,100,16],[400,340,100,16],[400,260,100,16],[400,180,100,16],[600,320,100,16],[600,240,100,16],[750,380,50,20]], enemies:[{x:410,y:148,speed:3,range:70}], coins:[{x:230,y:195},{x:430,y:155},{x:610,y:215}] },
+    // 9 - sea zigzag
+    { platforms:[[0,360,100,40],[150,310,100,16],[300,270,80,16],[440,310,100,16],[580,260,100,16],[700,300,100,40],[220,220,80,16],[520,200,80,16]], enemies:[{x:310,y:238,speed:2.5,range:50},{x:590,y:228,speed:2.8,range:60}], coins:[{x:230,y:195},{x:450,y:285},{x:530,y:175}] },
+    // 10 - hellfire maze
+    { platforms:[[0,360,130,40],[0,280,80,16],[0,200,80,16],[150,240,100,16],[300,280,100,16],[450,200,100,16],[600,240,100,16],[700,300,80,16],[700,360,100,40]], enemies:[{x:160,y:208,speed:3,range:70},{x:460,y:168,speed:3.5,range:70},{x:610,y:208,speed:3,range:60}], coins:[{x:50,y:175},{x:200,y:215},{x:470,y:175},{x:620,y:215}] },
+    // 11 - ruins long platforms
+    { platforms:[[0,360,300,40],[350,360,100,40],[500,360,300,40],[100,280,150,16],[400,240,150,16],[600,200,150,16],[250,180,80,16]], enemies:[{x:120,y:248,speed:2,range:120},{x:420,y:208,speed:2.5,range:100}], coins:[{x:150,y:255},{x:430,y:215},{x:640,y:175}] },
+    // 12 - cyber precision
+    { platforms:[[0,360,80,40],[120,330,60,12],[240,300,60,12],[360,270,60,12],[480,300,60,12],[600,330,60,12],[720,360,80,40],[300,200,200,12]], enemies:[{x:480,y:168,speed:4,range:150}], coins:[{x:135,y:305},{x:255,y:275},{x:375,y:245},{x:315,y:175}] },
+    // 13 - fortress battlements
+    { platforms:[[0,360,800,40],[0,280,120,16],[200,280,120,16],[400,280,120,16],[600,280,120,16],[100,200,100,16],[350,180,100,16],[580,200,100,16]], enemies:[{x:10,y:248,speed:2,range:100},{x:410,y:248,speed:2.5,range:100},{x:610,y:248,speed:3,range:100}], coins:[{x:110,y:175},{x:360,y:155},{x:590,y:175}] },
+    // 14 - witch spiral
+    { platforms:[[0,380,100,20],[100,340,80,14],[230,300,80,14],[360,260,80,14],[490,220,80,14],[620,260,80,14],[680,320,80,14],[400,160,80,14]], enemies:[{x:370,y:228,speed:3.5,range:60},{x:500,y:188,speed:3,range:60}], coins:[{x:120,y:315},{x:250,y:275},{x:410,y:135},{x:640,y:235}] },
+    // 15 - poison jump gaps
+    { platforms:[[0,360,100,40],[160,360,80,40],[300,360,80,40],[440,360,80,40],[580,360,80,40],[720,360,80,40],[80,280,100,14],[280,250,100,14],[480,250,100,14],[660,280,100,14]], enemies:[{x:290,y:218,speed:3,range:70},{x:490,y:218,speed:3,range:70}], coins:[{x:100,y:255},{x:310,y:225},{x:490,y:225},{x:670,y:255}] },
+    // 16 - candy bouncy
+    { platforms:[[0,360,180,40],[240,320,100,14],[400,270,100,14],[560,310,100,14],[680,360,120,40],[140,230,80,14],[460,200,80,14],[340,150,80,14]], enemies:[{x:250,y:288,speed:2.5,range:70},{x:570,y:278,speed:2.5,range:70}], coins:[{x:160,y:205},{x:360,y:125},{x:470,y:175}] },
+    // 17 - abyss vertigo
+    { platforms:[[0,360,100,40],[200,300,80,14],[100,240,80,14],[300,190,80,14],[500,240,80,14],[650,300,80,14],[700,360,100,40],[350,130,100,14]], enemies:[{x:110,y:208,speed:3.5,range:60},{x:510,y:208,speed:3.5,range:60}], coins:[{x:210,y:275},{x:310,y:165},{x:360,y:105},{x:660,y:275}] },
+    // 18 - golden gauntlet
+    { platforms:[[0,360,60,40],[100,310,80,14],[220,270,80,14],[340,230,80,14],[460,270,80,14],[580,230,80,14],[680,270,80,14],[720,360,80,40],[260,160,80,14],[500,160,80,14]], enemies:[{x:350,y:198,speed:4,range:70},{x:470,y:238,speed:3.5,range:70},{x:590,y:198,speed:4,range:70}], coins:[{x:270,y:135},{x:510,y:135},{x:460,y:245}] },
+    // 19 - heaven ascent
+    { platforms:[[0,380,120,20],[160,330,80,14],[280,280,80,14],[400,240,80,14],[520,190,80,14],[640,240,80,14],[700,310,100,14],[300,170,80,14],[500,130,80,14],[380,90,100,14]], enemies:[{x:530,y:158,speed:4,range:60},{x:310,y:138,speed:3.5,range:60}], coins:[{x:170,y:305},{x:410,y:215},{x:390,y:65}] },
+    // 20 - dragon lair approach
+    { platforms:[[0,360,120,40],[200,300,100,14],[360,240,100,14],[520,180,100,14],[650,300,120,14],[680,360,120,40],[100,200,80,14],[430,120,80,14]], enemies:[{x:210,y:268,speed:4,range:80},{x:530,y:148,speed:5,range:70},{x:660,y:268,speed:4.5,range:100}], coins:[{x:110,y:175},{x:440,y:95},{x:660,y:275}] },
+  ];
+
+  for (let i = 0; i < 20; i++) {
+    levels.push({ theme: themes[i], ...levelTemplates[i] });
+  }
+  return levels;
+}
+
+const LEVELS = makeLevels();
+
+// ─── GAME STATE ───────────────────────────────────────────────────────────────
+let state = 'title'; // title | playing | dead | bossintro | boss | win | gameover
+let currentLevel = 0;
+let lives = 3;
+let score = 0;
+let player, enemies, coins, platforms, theme;
+let jumpPressCount = 0; // for boss fight
+const BOSS_JUMPS_NEEDED = 20;
+
+// Dragon boss state
+let dragon = null;
+
+function initLevel(idx) {
+  const lvl = LEVELS[idx];
+  theme = lvl.theme;
+
+  platforms = lvl.platforms.map(p => ({ x: p[0], y: p[1], w: p[2], h: p[3] }));
+
+  player = {
+    x: 30, y: 300,
+    w: 24, h: 32,
+    vx: 0, vy: 0,
+    onGround: false,
+    jumpsLeft: 2,
+    dead: false,
+    invincible: 0,
+    facingRight: true,
+    frame: 0,
+    frameTimer: 0,
+  };
+
+  enemies = lvl.enemies.map(e => ({
+    x: e.x, y: e.y,
+    w: 28, h: 28,
+    speed: e.speed,
+    range: e.range,
+    startX: e.x,
+    dir: 1,
+    frame: 0,
+    frameTimer: 0,
+  }));
+
+  coins = lvl.coins.map(c => ({ x: c.x, y: c.y, collected: false, bob: Math.random() * Math.PI * 2 }));
+}
+
+function initBoss() {
+  state = 'boss';
+  theme = { sky: '#1a0000', ground: '#2a0000', plat: '#3a0000', accent: '#ff2200' };
+  platforms = [{ x: 0, y: 360, w: 800, h: 40 }];
+  player = {
+    x: 60, y: 310,
+    w: 24, h: 32,
+    vx: 0, vy: 0,
+    onGround: false,
+    jumpsLeft: 2,
+    dead: false,
+    invincible: 0,
+    facingRight: true,
+    frame: 0, frameTimer: 0,
+  };
+  enemies = [];
+  coins = [];
+  jumpPressCount = 0;
+
+  dragon = {
+    x: 500, y: 140,
+    w: 180, h: 140,
+    hp: BOSS_JUMPS_NEEDED,
+    maxHp: BOSS_JUMPS_NEEDED,
+    phase: 0,
+    bobTimer: 0,
+    fireTimer: 0,
+    fireballs: [],
+    shakeTimer: 0,
+    angry: false,
+  };
+}
+
+// ─── INPUT ────────────────────────────────────────────────────────────────────
+const keys = {};
+let jumpPressed = false;
+
+document.addEventListener('keydown', e => {
+  if (['Space','ArrowUp','ArrowLeft','ArrowRight','ArrowDown'].includes(e.code)) e.preventDefault();
+  if (!keys[e.code]) {
+    if ((e.code === 'Space' || e.code === 'ArrowUp') && (state === 'playing' || state === 'boss')) {
+      jumpPressed = true;
+    }
+  }
+  keys[e.code] = true;
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// ─── PHYSICS ─────────────────────────────────────────────────────────────────
+function applyPhysics(p) {
+  const GRAV = 0.55, MAXFALL = 14;
+  p.vy += GRAV;
+  if (p.vy > MAXFALL) p.vy = MAXFALL;
+  p.x += p.vx;
+  p.y += p.vy;
+  p.onGround = false;
+
+  for (const pl of platforms) {
+    if (p.x + p.w > pl.x && p.x < pl.x + pl.w) {
+      if (p.y + p.h > pl.y && p.y + p.h < pl.y + pl.h + Math.abs(p.vy) + 2 && p.vy >= 0) {
+        p.y = pl.y - p.h;
+        p.vy = 0;
+        p.onGround = true;
+        p.jumpsLeft = 2;
+      }
+    }
+  }
+
+  // walls
+  if (p.x < 0) p.x = 0;
+  if (p.x + p.w > W) p.x = W - p.w;
+}
+
+// ─── UPDATE ───────────────────────────────────────────────────────────────────
+let lastTime = 0;
+function gameLoop(ts) {
+  const dt = Math.min((ts - lastTime) / 16.67, 3);
+  lastTime = ts;
+
+  if (state === 'playing') updatePlaying(dt);
+  else if (state === 'boss') updateBoss(dt);
+
+  draw();
+  updateHUD();
+  requestAnimationFrame(gameLoop);
+}
+
+function updatePlaying(dt) {
+  const p = player;
+  if (p.dead) {
+    p.deathTimer = (p.deathTimer || 0) + dt;
+    if (p.deathTimer > 90) {
+      lives--;
+      if (lives <= 0) { state = 'gameover'; showMsg('GAME OVER', 'You ran out of lives!', 'Try Again', resetGame); return; }
+      initLevel(currentLevel);
+    }
+    return;
+  }
+
+  // Player move
+  const SPEED = 3.5;
+  p.vx = 0;
+  if (keys['ArrowLeft']) { p.vx = -SPEED; p.facingRight = false; }
+  if (keys['ArrowRight']) { p.vx = SPEED; p.facingRight = true; }
+
+  if (jumpPressed) {
+    jumpPressed = false;
+    if (p.jumpsLeft > 0) {
+      p.vy = -11;
+      p.jumpsLeft--;
+    }
+  }
+
+  applyPhysics(p);
+
+  // Fall death
+  if (p.y > H + 40) { killPlayer(); return; }
+
+  // Invincibility
+  if (p.invincible > 0) p.invincible -= dt;
+
+  // Enemies
+  for (const e of enemies) {
+    e.frameTimer += dt;
+    if (e.frameTimer > 8) { e.frameTimer = 0; e.frame = (e.frame + 1) % 2; }
+
+    e.x += e.speed * e.dir * dt;
+    if (e.x < e.startX - e.range || e.x > e.startX + e.range) e.dir *= -1;
+
+    // Snap enemy to platform
+    for (const pl of platforms) {
+      if (e.x + e.w > pl.x && e.x < pl.x + pl.w) {
+        if (e.y + e.h > pl.y && e.y + e.h < pl.y + pl.h + 10) {
+          e.y = pl.y - e.h;
+        }
+      }
+    }
+
+    // Player-enemy collision
+    if (p.invincible <= 0 && rectsOverlap(p, e)) {
+      // Stomp from above?
+      if (p.vy > 0 && p.y + p.h < e.y + e.h * 0.6) {
+        // Kill enemy
+        e.dead = true;
+        p.vy = -8;
+        score += 100;
+      } else {
+        killPlayer();
+        return;
+      }
+    }
+  }
+  enemies = enemies.filter(e => !e.dead);
+
+  // Coins
+  let t = Date.now() / 800;
+  for (const c of coins) {
+    if (!c.collected && rectsOverlap(p, { x: c.x - 8, y: c.y - 8 + Math.sin(c.bob + t) * 4, w: 16, h: 16 })) {
+      c.collected = true;
+      score += 50;
+    }
+  }
+
+  // Goal: reach right edge at ground level if all enemies dead
+  if (p.x + p.w >= W - 10 && p.onGround) {
+    currentLevel++;
+    if (currentLevel >= 20) {
+      state = 'bossintro';
+      showMsg('⚠ BOSS FIGHT ⚠', 'The Dragon awakens!\nJump on him ' + BOSS_JUMPS_NEEDED + ' times to win!\n\nSPACE / ↑ to JUMP', 'FIGHT!', () => { hideMsg(); initBoss(); });
+    } else {
+      initLevel(currentLevel);
+    }
+  }
+
+  // Player anim
+  p.frameTimer += dt;
+  if (p.frameTimer > 6) { p.frameTimer = 0; p.frame = (p.frame + 1) % 4; }
+}
+
+function updateBoss(dt) {
+  const p = player;
+  if (p.dead) {
+    p.deathTimer = (p.deathTimer || 0) + dt;
+    if (p.deathTimer > 90) {
+      lives--;
+      if (lives <= 0) { state = 'gameover'; showMsg('GAME OVER', 'The Dragon wins...', 'Try Again', resetGame); return; }
+      initBoss();
+    }
+    return;
+  }
+
+  // Player move
+  const SPEED = 3.5;
+  p.vx = 0;
+  if (keys['ArrowLeft']) { p.vx = -SPEED; p.facingRight = false; }
+  if (keys['ArrowRight']) { p.vx = SPEED; p.facingRight = true; }
+
+  if (jumpPressed) {
+    jumpPressed = false;
+    if (p.jumpsLeft > 0) {
+      p.vy = -11;
+      p.jumpsLeft--;
+    }
+  }
+
+  applyPhysics(p);
+  if (p.y > H + 40) { killPlayer(); return; }
+  if (p.invincible > 0) p.invincible -= dt;
+
+  // Dragon bob
+  dragon.bobTimer += dt * 0.04;
+  const dragonY = 120 + Math.sin(dragon.bobTimer) * 20;
+  dragon.displayY = dragonY;
+
+  // Fireball spawning
+  dragon.fireTimer -= dt;
+  const fireRate = dragon.hp < dragon.maxHp / 2 ? 50 : 90;
+  if (dragon.fireTimer <= 0) {
+    dragon.fireTimer = fireRate;
+    dragon.fireballs.push({
+      x: dragon.x + 10,
+      y: dragonY + 80,
+      vx: -4 - Math.random() * 2,
+      vy: (Math.random() - 0.5) * 2,
+      r: 10,
+    });
+  }
+
+  // Update fireballs
+  for (const f of dragon.fireballs) {
+    f.x += f.vx * dt;
+    f.y += f.vy * dt;
+    // Check player hit
+    if (p.invincible <= 0) {
+      const dx = (p.x + 12) - f.x, dy = (p.y + 16) - f.y;
+      if (Math.sqrt(dx * dx + dy * dy) < f.r + 12) {
+        killPlayer();
+        return;
+      }
+    }
+  }
+  dragon.fireballs = dragon.fireballs.filter(f => f.x > -20);
+
+  // Shake
+  if (dragon.shakeTimer > 0) dragon.shakeTimer -= dt;
+
+  // Player landing on dragon
+  if (p.vy > 0 &&
+    p.x + p.w > dragon.x + 20 &&
+    p.x < dragon.x + dragon.w - 20 &&
+    p.y + p.h > dragonY + 10 &&
+    p.y + p.h < dragonY + 50) {
+    p.vy = -12;
+    p.y = dragonY + 10 - p.h;
+    p.onGround = true;
+    p.jumpsLeft = 2;
+
+    jumpPressCount++;
+    dragon.hp--;
+    dragon.shakeTimer = 15;
+    score += 200;
+
+    if (dragon.hp <= 0) {
+      state = 'win';
+      showMsg('🏆 VICTORY! 🏆', 'You slew the dragon!\n\nFinal Score: ' + score, 'Play Again', resetGame);
+    }
+  }
+
+  p.frameTimer += dt;
+  if (p.frameTimer > 6) { p.frameTimer = 0; p.frame = (p.frame + 1) % 4; }
+}
+
+function killPlayer() {
+  const p = player;
+  if (p.invincible > 0 || p.dead) return;
+  p.dead = true;
+  p.deathTimer = 0;
+  p.vy = -12;
+}
+
+function rectsOverlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// ─── DRAW ─────────────────────────────────────────────────────────────────────
+function draw() {
+  if (state !== 'playing' && state !== 'boss') return;
+
+  // Sky
+  ctx.fillStyle = theme.sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // Background stars/clouds
+  drawBgDetails();
+
+  // Platforms
+  for (const pl of platforms) {
+    ctx.fillStyle = theme.plat;
+    ctx.fillRect(pl.x, pl.y, pl.w, pl.h);
+    ctx.fillStyle = lighten(theme.plat, 40);
+    ctx.fillRect(pl.x, pl.y, pl.w, 4);
+  }
+
+  // Coins
+  const t = Date.now() / 800;
+  for (const c of coins) {
+    if (c.collected) continue;
+    const cy = c.y + Math.sin(c.bob + t) * 4;
+    ctx.fillStyle = theme.accent;
+    ctx.beginPath();
+    ctx.arc(c.x, cy, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = lighten(theme.accent, 60);
+    ctx.beginPath();
+    ctx.arc(c.x - 2, cy - 2, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Enemies
+  for (const e of enemies) {
+    drawEnemy(e);
+  }
+
+  // Boss
+  if (state === 'boss' && dragon) {
+    drawDragon();
+  }
+
+  // Player
+  drawPlayer();
+
+  // Goal arrow on playing levels
+  if (state === 'playing') {
+    ctx.fillStyle = theme.accent;
+    ctx.font = '18px Press Start 2P';
+    ctx.fillText('→', W - 30, 370);
+    ctx.font = '7px Press Start 2P';
+    ctx.fillText('EXIT', W - 40, 385);
+  }
+
+  // Boss health bar
+  if (state === 'boss' && dragon) {
+    drawBossHUD();
+  }
+}
+
+function drawBgDetails() {
+  // Simple stars or clouds depending on sky color
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = '#ffffff';
+  const seed = currentLevel * 17;
+  for (let i = 0; i < 20; i++) {
+    const sx = ((seed + i * 137) % 780) + 10;
+    const sy = ((seed + i * 97) % 160) + 20;
+    const sr = ((seed + i * 53) % 3) + 1;
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawPlayer() {
+  const p = player;
+  if (p.dead) {
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+  } else if (p.invincible > 0 && Math.floor(p.invincible / 5) % 2 === 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.4;
+  } else {
+    ctx.save();
+  }
+
+  // Body
+  ctx.fillStyle = '#4488ff';
+  ctx.fillRect(p.x, p.y + 10, p.w, p.h - 10);
+
+  // Head
+  ctx.fillStyle = '#ffcc88';
+  ctx.fillRect(p.x + 4, p.y, p.w - 8, 14);
+
+  // Hair
+  ctx.fillStyle = '#4a2800';
+  ctx.fillRect(p.x + 4, p.y, p.w - 8, 5);
+
+  // Eye
+  ctx.fillStyle = '#000';
+  const eyeX = p.facingRight ? p.x + p.w - 8 : p.x + 4;
+  ctx.fillRect(eyeX, p.y + 6, 3, 3);
+
+  // Sword
+  ctx.fillStyle = '#c0c0c0';
+  if (p.facingRight) {
+    ctx.fillRect(p.x + p.w, p.y + 12, 12, 4);
+  } else {
+    ctx.fillRect(p.x - 12, p.y + 12, 12, 4);
+  }
+
+  // Legs animation
+  const leg = p.onGround ? (Math.floor(p.frame / 1) % 2 === 0 ? 2 : -2) : 0;
+  ctx.fillStyle = '#225599';
+  ctx.fillRect(p.x + 2, p.y + p.h - 8, 8, 8 + (p.onGround ? leg : 0));
+  ctx.fillRect(p.x + p.w - 10, p.y + p.h - 8, 8, 8 - (p.onGround ? leg : 0));
+
+  ctx.restore();
+}
+
+function drawEnemy(e) {
+  // Slime-like enemy
+  const bob = Math.sin(Date.now() / 300 + e.startX) * 2;
+  ctx.fillStyle = '#cc2222';
+  ctx.fillRect(e.x, e.y + bob, e.w, e.h);
+  ctx.fillStyle = '#ff4444';
+  ctx.fillRect(e.x + 2, e.y + bob, e.w - 4, 8);
+  // Eyes
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(e.x + 5, e.y + bob + 5, 6, 6);
+  ctx.fillRect(e.x + e.w - 11, e.y + bob + 5, 6, 6);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(e.x + 7, e.y + bob + 7, 3, 3);
+  ctx.fillRect(e.x + e.w - 9, e.y + bob + 7, 3, 3);
+  // Angry brows
+  ctx.fillStyle = '#880000';
+  ctx.fillRect(e.x + 4, e.y + bob + 3, 8, 3);
+  ctx.fillRect(e.x + e.w - 12, e.y + bob + 3, 8, 3);
+}
+
+function drawDragon() {
+  const shake = dragon.shakeTimer > 0 ? (Math.random() - 0.5) * 8 : 0;
+  const dy = dragon.displayY + shake;
+  const dx = dragon.x + shake;
+  const t = Date.now() / 500;
+
+  // Wings
+  ctx.save();
+  ctx.fillStyle = '#880000';
+  // Left wing
+  ctx.beginPath();
+  ctx.moveTo(dx + 30, dy + 40);
+  ctx.lineTo(dx - 60, dy + 20 + Math.sin(t) * 15);
+  ctx.lineTo(dx - 20, dy + 80);
+  ctx.closePath();
+  ctx.fill();
+  // Right wing
+  ctx.beginPath();
+  ctx.moveTo(dx + dragon.w - 30, dy + 40);
+  ctx.lineTo(dx + dragon.w + 60, dy + 20 + Math.sin(t + 0.5) * 15);
+  ctx.lineTo(dx + dragon.w + 10, dy + 80);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Body
+  ctx.fillStyle = '#660000';
+  ctx.beginPath();
+  ctx.ellipse(dx + dragon.w / 2, dy + 80, dragon.w / 2, 55, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Scales pattern
+  ctx.fillStyle = '#880000';
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 5; c++) {
+      ctx.beginPath();
+      ctx.ellipse(dx + 30 + c * 26, dy + 55 + r * 22, 10, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Head
+  ctx.fillStyle = '#990000';
+  ctx.fillRect(dx + 20, dy, 100, 60);
+  ctx.beginPath();
+  ctx.arc(dx + 20, dy + 30, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Snout
+  ctx.fillStyle = '#aa2200';
+  ctx.fillRect(dx - 10, dy + 25, 35, 20);
+
+  // Eyes
+  const eyeGlow = Math.abs(Math.sin(t * 2));
+  ctx.fillStyle = `rgb(255, ${Math.floor(eyeGlow * 200)}, 0)`;
+  ctx.beginPath();
+  ctx.arc(dx + 15, dy + 18, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffff00';
+  ctx.beginPath();
+  ctx.arc(dx + 15, dy + 18, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(dx + 17, dy + 18, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Horns
+  ctx.fillStyle = '#222';
+  ctx.beginPath();
+  ctx.moveTo(dx + 30, dy);
+  ctx.lineTo(dx + 20, dy - 30);
+  ctx.lineTo(dx + 45, dy - 5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(dx + 70, dy);
+  ctx.lineTo(dx + 80, dy - 35);
+  ctx.lineTo(dx + 95, dy - 5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Nostrils / fire smoke
+  ctx.fillStyle = 'rgba(255,100,0,0.6)';
+  ctx.beginPath();
+  ctx.arc(dx - 5, dy + 35, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Fireballs
+  for (const f of dragon.fireballs) {
+    const grd = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+    grd.addColorStop(0, '#ffffff');
+    grd.addColorStop(0.3, '#ffaa00');
+    grd.addColorStop(1, '#ff2200');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // HP remaining display (flashing when low)
+  if (dragon.hp < dragon.maxHp * 0.3) {
+    ctx.save();
+    ctx.globalAlpha = 0.5 + Math.sin(Date.now() / 150) * 0.5;
+    ctx.fillStyle = '#ff0000';
+    ctx.font = '8px Press Start 2P';
+    ctx.fillText('ENRAGED!', dx + 30, dy - 5);
+    ctx.restore();
+  }
+}
+
+function drawBossHUD() {
+  // Dragon HP bar
+  const bw = 300, bh = 16;
+  const bx = (W - bw) / 2, by = 10;
+  ctx.fillStyle = '#333';
+  ctx.fillRect(bx, by, bw, bh);
+  const hpFrac = dragon.hp / dragon.maxHp;
+  ctx.fillStyle = hpFrac > 0.5 ? '#ff4400' : '#ff0000';
+  ctx.fillRect(bx, by, bw * hpFrac, bh);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(bx, by, bw, bh);
+  ctx.fillStyle = '#fff';
+  ctx.font = '7px Press Start 2P';
+  ctx.textAlign = 'center';
+  ctx.fillText('DRAGON  ' + dragon.hp + ' / ' + dragon.maxHp, W / 2, by + 12);
+  ctx.textAlign = 'left';
+
+  // Jumps counter
+  ctx.fillStyle = '#ffd700';
+  ctx.font = '8px Press Start 2P';
+  ctx.fillText('JUMPS: ' + jumpPressCount + '/' + BOSS_JUMPS_NEEDED, 10, 30);
+}
+
+// ─── HUD ──────────────────────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('levelLabel').textContent =
+    state === 'boss' ? 'BOSS FIGHT' : 'LEVEL ' + (currentLevel + 1);
+  document.getElementById('livesLabel').textContent = '♥ '.repeat(lives).trim();
+  document.getElementById('scoreLabel').textContent = 'SCORE: ' + score;
+}
+
+// ─── MSG OVERLAY ──────────────────────────────────────────────────────────────
+function showMsg(title, body, btnText, onBtn) {
+  const ov = document.getElementById('msgOverlay');
+  ov.innerHTML = `
+    <h1>${title}</h1>
+    <p>${body.replace(/\n/g,'<br>')}</p>
+    <button id="msgBtn">${btnText}</button>
+  `;
+  ov.style.display = 'flex';
+  document.getElementById('msgBtn').onclick = () => { hideMsg(); onBtn(); };
+}
+
+function hideMsg() {
+  document.getElementById('msgOverlay').style.display = 'none';
+}
+
+// ─── GAME CONTROLS ────────────────────────────────────────────────────────────
+function startGame() {
+  resetGame();
+}
+
+function resetGame() {
+  hideMsg();
+  currentLevel = 0;
+  lives = 3;
+  score = 0;
+  state = 'playing';
+  initLevel(0);
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function lighten(hex, amount) {
+  const r = Math.min(255, parseInt(hex.slice(1,3),16) + amount);
+  const g = Math.min(255, parseInt(hex.slice(3,5),16) + amount);
+  const b = Math.min(255, parseInt(hex.slice(5,7),16) + amount);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+requestAnimationFrame(ts => { lastTime = ts; requestAnimationFrame(gameLoop); });
+</script>
+</body>
+</html>
