@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speech to Text Tool</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #1e1e1e;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    width: 90%;
+    max-width: 800px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+textarea {
+    width: 100%;
+    height: 300px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    resize: none;
+    outline: none;
+}
+
+.buttons {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+button {
+    padding: 10px 14px;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.start { background: #22c55e; color: white; }
+.stop { background: #ef4444; color: white; }
+.copy { background: #3b82f6; color: white; }
+.paste { background: #f59e0b; color: white; }
+.speak { background: #8b5cf6; color: white; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Speech to Text</h1>
+
+    <textarea id="output" placeholder="Start speaking..."></textarea>
+
+    <div class="buttons">
+        <button class="start" onclick="startListening()">Start</button>
+        <button class="stop" onclick="stopListening()">Stop</button>
+        <button class="paste" onclick="pasteText()">Paste</button>
+        <button class="copy" onclick="copyText()">Copy</button>
+        <button class="speak" onclick="readBack()">Read Back</button>
+    </div>
+</div>
+
+<script>
+const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (!SpeechRecognition) {
+    alert("Speech Recognition is not supported in this browser.");
+}
+
+const recognition = new SpeechRecognition();
+recognition.continuous = true;
+recognition.interimResults = true;
+recognition.lang = "en-US";
+
+let finalText = "";
+let lastTime = Date.now();
+
+// simple filter container (extend as needed)
+const censorDictionary = new Set([]);
+
+function censorText(text) {
+    return text.split(/\b/).map(word => {
+        if (censorDictionary.has(word.toLowerCase())) {
+            return "****";
+        }
+        return word;
+    }).join("");
+}
+
+// basic punctuation + formatting
+function formatText(text) {
+    text = text.trim().toLowerCase();
+    if (text.length > 0) {
+        text = text.charAt(0).toUpperCase() + text.slice(1);
+    }
+    text = text.replace(/\s+/g, " ");
+    return text;
+}
+
+function cleanForSpeech(text) {
+    return text
+        .replace(/[_º]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+recognition.onresult = (event) => {
+    let now = Date.now();
+    let interim = "";
+
+    for (let i = 0; i < event.results.length; i++) {
+        let t = event.results[i][0].transcript;
+
+        if (event.results[i].isFinal) {
+            finalText += t + " ";
+        } else {
+            interim += t;
+        }
+    }
+
+    if (now - lastTime > 1200 && finalText.length > 0) {
+        finalText = finalText.trim() + ". ";
+    }
+
+    lastTime = now;
+
+    let output = finalText + interim;
+    output = censorText(output);
+    output = formatText(output);
+
+    document.getElementById("output").value = output;
+};
+
+function startListening() {
+    try { recognition.start(); } catch (e) {}
+}
+
+function stopListening() {
+    recognition.stop();
+}
+
+function copyText() {
+    const box = document.getElementById("output");
+    box.select();
+    document.execCommand("copy");
+}
+
+async function pasteText() {
+    try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById("output").value += text;
+    } catch (e) {
+        alert("Clipboard access blocked.");
+    }
+}
+
+function readBack() {
+    let text = document.getElementById("output").value;
+    text = cleanForSpeech(text);
+
+    if (!text) return;
+
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.rate = 1;
+    speech.pitch = 1;
+
+    window.speechSynthesis.speak(speech);
+}
+</script>
+
+</body>
+</html>
