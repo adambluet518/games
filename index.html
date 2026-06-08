@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Game Launcher</title>
     <style>
-        :root {
+        /* ================= THEME DEFINITIONS ================= */
+        :root, [data-theme="default"] {
             --bg-main: #121214;
             --bg-sidebar: #1a1a1e;
             --bg-card: #202024;
@@ -43,6 +44,46 @@
             --bg-topbar: #e4e6eb;
         }
 
+        /* Calm (Sage / Cozy Neutral) */
+        [data-theme="calm"] {
+            --bg-main: #f4f3ef;
+            --bg-sidebar: #eadeca;
+            --bg-card: #dfd5c6;
+            --border-color: #b5c4b1;
+            --text-main: #2f3e46;
+            --text-muted: #62757f;
+            --accent: #52796f;
+            --bg-viewport: #fdfbf7;
+            --bg-topbar: #dfd5c6;
+        }
+
+        /* Retro Arcade (80s Synthwave/Neon) */
+        [data-theme="retro"] {
+            --bg-main: #140526;
+            --bg-sidebar: #22093d;
+            --bg-card: #321153;
+            --border-color: #39ff14;
+            --text-main: #fff;
+            --text-muted: #ff007f;
+            --accent: #ff007f;
+            --bg-viewport: #0b0214;
+            --bg-topbar: #1b0731;
+        }
+
+        /* Midnight Ocean (Deep Blues) */
+        [data-theme="ocean"] {
+            --bg-main: #0b132b;
+            --bg-sidebar: #1c2541;
+            --bg-card: #3a506b;
+            --border-color: #48cae4;
+            --text-main: #edf2f4;
+            --text-muted: #a3b18a;
+            --accent: #00b4d8;
+            --bg-viewport: #0a1128;
+            --bg-topbar: #14213d;
+        }
+
+        /* ================= BASE STYLES ================= */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -56,7 +97,7 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
-            transition: background 0.3s, color 0.3s;
+            transition: background 0.2s, color 0.2s;
         }
 
         .sidebar {
@@ -66,6 +107,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            transition: background 0.2s, border 0.2s;
         }
 
         .sidebar-header {
@@ -92,6 +134,7 @@
             color: var(--text-main);
             font-size: 0.9rem;
             outline: none;
+            transition: background 0.2s, border 0.2s, color 0.2s;
         }
 
         .search-input:focus {
@@ -106,6 +149,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 1.1rem;
+            transition: all 0.2s;
         }
 
         .roulette-btn:hover {
@@ -212,6 +256,7 @@
             border-bottom: 1px solid var(--border-color);
             z-index: 10;
             gap: 15px;
+            transition: background 0.2s, border 0.2s;
         }
 
         .theme-select {
@@ -223,6 +268,12 @@
             font-size: 0.85rem;
             outline: none;
             cursor: pointer;
+            transition: background 0.2s, border 0.2s, color 0.2s;
+        }
+
+        .theme-select option {
+            background-color: var(--bg-sidebar);
+            color: var(--text-main);
         }
 
         .user-tag {
@@ -236,6 +287,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: background 0.2s, border 0.2s, color 0.2s;
         }
 
         .user-tag:hover, .theme-select:hover {
@@ -294,8 +346,11 @@
         <div class="top-bar">
             <select id="theme-picker" class="theme-select" onchange="changeTheme(this.value)">
                 <option value="default">Dark Mode</option>
-                <option value="cyberpunk">Cyberpunk</option>
                 <option value="light">Light Mode</option>
+                <option value="cyberpunk">Cyberpunk</option>
+                <option value="calm">Calm (Sage)</option>
+                <option value="retro">Retro Arcade</option>
+                <option value="ocean">Midnight Ocean</option>
             </select>
             <div class="user-tag" onclick="changeUsername()">
                 <span>👤 Player:</span>
@@ -335,7 +390,6 @@
         let activeGameId = "";
         let playtimeTicker = null;
 
-        // Load Favorites and Playtimes from LocalStorage
         let favorites = JSON.parse(localStorage.getItem('launcher_favorites')) || [];
         let playtimes = JSON.parse(localStorage.getItem('launcher_playtimes')) || {};
 
@@ -348,7 +402,6 @@
                 game.title.toLowerCase().includes(cleanSearch) || game.genre.toLowerCase().includes(cleanSearch)
             );
 
-            // Grouping
             const grouped = {};
             if (favorites.length > 0 && cleanSearch === "") {
                 grouped["⭐ Favorites"] = GAMES_DATA.filter(g => favorites.includes(g.id));
@@ -408,7 +461,6 @@
             iframe.style.display = 'block';
             placeholder.style.display = 'none';
 
-            // Track playtime every 10 seconds
             playtimeTicker = setInterval(() => {
                 if (!playtimes[game.id]) playtimes[game.id] = 0;
                 playtimes[game.id] += 10;
@@ -450,7 +502,7 @@
             localStorage.setItem('launcher_theme', theme);
         }
 
-        // Init values
+        // Initialize saved details
         document.getElementById('display-username').innerText = localStorage.getItem('launcher_username') || "Player1";
         const savedTheme = localStorage.getItem('launcher_theme') || 'default';
         document.getElementById('theme-picker').value = savedTheme;
