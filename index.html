@@ -200,7 +200,7 @@
         <div class="sidebar-header">🕹️ Game Launcher</div>
         
         <div class="search-container">
-            <input type="text" id="search-box" class="search-input" placeholder="Search games or genres..." oninput="filterGames()">
+            <input type="text" id="search-box" class="search-input" placeholder="Search games or categories..." oninput="filterGames()">
         </div>
 
         <div class="games-list" id="launcher-games-list"></div>
@@ -224,24 +224,24 @@
     </div>
 
     <script>
-        // Master list of your games. You can add new ones anywhere here!
+        // Master list of your games with broad, matched categories
         const GAMES_DATA = [
-            { id: 'gm1', title: 'Block Blast', genre: 'Puzzle', url: 'gm1.html' },
-            { id: 'gm2', title: 'Cookie Clicker', genre: 'Idle / Clicker', url: 'gm2.html' },
-            { id: 'gm3', title: 'Depths of Aeloria', genre: 'Text-Based RPG', url: 'gm3.html' },
-            { id: 'gm4', title: 'Wordstorm', genre: 'Word / Puzzle', url: 'gm4.html' },
-            { id: 'gm5', title: 'Paint Editor', genre: 'Utility / Art', url: 'gm5.html' },
-            { id: 'gm6', title: 'Dragon Quest', genre: '2D Platformer', url: 'gm6.html' },
-            { id: 'gm7', title: 'AdamCraft', genre: '2D Paper Minecraft', url: 'gm7.html' },
-            { id: 'gm8', title: 'Code IDE', genre: 'Utility / Dev', url: 'gm8.html' },
-            { id: 'gm9', title: 'Neon Drift', genre: 'Sandbox Racer', url: 'gm9.html' },
-            { id: 'gm10', title: 'The Veil', genre: '3D FPS', url: 'gm10.html' },
-            { id: 'gm11', title: 'Street Racer', genre: '3D Racing', url: 'gm11.html' },
-            { id: 'gm12', title: '3D Dino Game', genre: '3D Endless Runner', url: 'gm12.html' },
-            { id: 'gm13', title: 'Space Shooter', genre: '3D Space Shooter', url: 'gm13.html' },
-            { id: 'gm14', title: 'Minecraft Clone', genre: '3D Sandbox', url: 'gm14.html' },
-            { id: 'gm15', title: '3D Chess', genre: 'Board / Strategy', url: 'gm15.html' },
-            { id: 'gm16', title: 'Text to Speech', genre: 'Utility / Audio', url: 'gm16.html' }
+            { id: 'gm1', title: 'Block Blast', genre: 'Puzzles & Idles', url: 'gm1.html' },
+            { id: 'gm2', title: 'Cookie Clicker', genre: 'Puzzles & Idles', url: 'gm2.html' },
+            { id: 'gm3', title: 'Depths of Aeloria', genre: 'RPG & Word Games', url: 'gm3.html' },
+            { id: 'gm4', title: 'Wordstorm', genre: 'RPG & Word Games', url: 'gm4.html' },
+            { id: 'gm5', title: 'Paint Editor', genre: 'Utilities', url: 'gm5.html' },
+            { id: 'gm6', title: 'Dragon Quest', genre: '2D Games', url: 'gm6.html' },
+            { id: 'gm7', title: 'AdamCraft', genre: '2D Games', url: 'gm7.html' },
+            { id: 'gm8', title: 'Code IDE', genre: 'Utilities', url: 'gm8.html' },
+            { id: 'gm9', title: 'Neon Drift', genre: '3D Games', url: 'gm9.html' },
+            { id: 'gm10', title: 'The Veil', genre: '3D Games', url: 'gm10.html' },
+            { id: 'gm11', title: 'Street Racer', genre: '3D Games', url: 'gm11.html' },
+            { id: 'gm12', title: '3D Dino Game', genre: '3D Games', url: 'gm12.html' },
+            { id: 'gm13', title: 'Space Shooter', genre: '3D Games', url: 'gm13.html' },
+            { id: 'gm14', title: 'Minecraft Clone', genre: '3D Games', url: 'gm14.html' },
+            { id: 'gm15', title: '3D Chess', genre: '3D Games', url: 'gm15.html' },
+            { id: 'gm16', title: 'Text to Speech', genre: 'Utilities', url: 'gm16.html' }
         ];
 
         let activeGameUrl = "";
@@ -261,7 +261,7 @@
             const newName = prompt("Enter your custom username:", currentName);
             
             if (newName !== null && newName.trim() !== "") {
-                const cleanedName = newName.trim().substring(0, 15); // limit to 15 chars so layout doesn't break
+                const cleanedName = newName.trim().substring(0, 15);
                 localStorage.setItem('launcher_username', cleanedName);
                 document.getElementById('display-username').innerText = cleanedName;
             }
