@@ -31,18 +31,53 @@
         }
 
         .sidebar-header {
-            padding: 20px;
+            padding: 20px 20px 10px 20px;
             font-size: 1.2rem;
             font-weight: bold;
             color: #4ea8de;
-            border-bottom: 1px solid #29292e;
             text-align: center;
+        }
+
+        /* Search Bar Styling */
+        .search-container {
+            padding: 0 15px 15px 15px;
+            border-bottom: 1px solid #29292e;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: #202024;
+            border: 1px solid #29292e;
+            border-radius: 6px;
+            color: #e1e1e6;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #4ea8de;
         }
 
         .games-list {
             flex: 1;
             overflow-y: auto;
             padding: 15px;
+        }
+
+        /* Genre Section Header */
+        .genre-heading {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #4ea8de;
+            margin: 15px 0 8px 5px;
+            font-weight: bold;
+        }
+
+        .genre-heading:first-of-type {
+            margin-top: 5px;
         }
 
         /* Game Button Styling */
@@ -93,6 +128,48 @@
             position: relative;
         }
 
+        /* Top Bar for Username display */
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px 25px;
+            background-color: #0d0d0f;
+            border-bottom: 1px solid #1a1a1e;
+            z-index: 10;
+        }
+
+        .user-tag {
+            background-color: #1a1a1e;
+            border: 1px solid #29292e;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #e1e1e6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-tag:hover {
+            border-color: #4ea8de;
+            background-color: #202024;
+        }
+
+        .user-name {
+            color: #4ea8de;
+            font-weight: bold;
+        }
+
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
         #game-frame {
             width: 100%;
             height: 100%;
@@ -121,99 +198,148 @@
 
     <div class="sidebar">
         <div class="sidebar-header">🕹️ Game Launcher</div>
-        <div class="games-list">
-            <button class="game-btn" onclick="loadGame('gm1.html', this)">
-                <span>Block Blast</span>
-                <span class="game-genre">Puzzle</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm2.html', this)">
-                <span>Cookie Clicker</span>
-                <span class="game-genre">Idle / Clicker</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm3.html', this)">
-                <span>Depths of Aeloria</span>
-                <span class="game-genre">Text-Based RPG</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm4.html', this)">
-                <span>Wordstorm</span>
-                <span class="game-genre">Word / Puzzle</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm5.html', this)">
-                <span>Paint Editor</span>
-                <span class="game-genre">Utility / Art</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm6.html', this)">
-                <span>Dragon Quest</span>
-                <span class="game-genre">2D Platformer</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm7.html', this)">
-                <span>AdamCraft</span>
-                <span class="game-genre">2D Paper Minecraft</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm8.html', this)">
-                <span>Code IDE</span>
-                <span class="game-genre">Utility / Dev</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm9.html', this)">
-                <span>Neon Drift</span>
-                <span class="game-genre">Sandbox Racer</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm10.html', this)">
-                <span>The Veil</span>
-                <span class="game-genre">3D FPS</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm11.html', this)">
-                <span>Street Racer</span>
-                <span class="game-genre">3D Racing</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm12.html', this)">
-                <span>3D Dino Game</span>
-                <span class="game-genre">3D Endless Runner</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm13.html', this)">
-                <span>Space Shooter</span>
-                <span class="game-genre">3D Space Shooter</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm14.html', this)">
-                <span>Minecraft Clone</span>
-                <span class="game-genre">3D Sandbox</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm15.html', this)">
-                <span>3D Chess</span>
-                <span class="game-genre">Board / Strategy</span>
-            </button>
-            <button class="game-btn" onclick="loadGame('gm16.html', this)">
-                <span>Text to Speech</span>
-                <span class="game-genre">Utility / Audio</span>
-            </button>
+        
+        <div class="search-container">
+            <input type="text" id="search-box" class="search-input" placeholder="Search games or genres..." oninput="filterGames()">
         </div>
+
+        <div class="games-list" id="launcher-games-list"></div>
     </div>
 
     <div class="main-content">
-        <div class="placeholder" id="placeholder-text">
-            <h2>Welcome to Your Launcher</h2>
-            <p>Select a game from the sidebar to start playing!</p>
+        <div class="top-bar">
+            <div class="user-tag" onclick="changeUsername()" title="Click to change your username">
+                <span>👤 Player:</span>
+                <span id="display-username" class="user-name">Player1</span>
+            </div>
         </div>
-        <iframe id="game-frame" src="" allow="fullscreen; autoplay; pointer-lock"></iframe>
+
+        <div class="iframe-container">
+            <div class="placeholder" id="placeholder-text">
+                <h2>Welcome to Your Launcher</h2>
+                <p>Select a game from the sidebar to start playing!</p>
+            </div>
+            <iframe id="game-frame" src="" allow="fullscreen; autoplay; pointer-lock"></iframe>
+        </div>
     </div>
 
     <script>
+        // Master list of your games. You can add new ones anywhere here!
+        const GAMES_DATA = [
+            { id: 'gm1', title: 'Block Blast', genre: 'Puzzle', url: 'gm1.html' },
+            { id: 'gm2', title: 'Cookie Clicker', genre: 'Idle / Clicker', url: 'gm2.html' },
+            { id: 'gm3', title: 'Depths of Aeloria', genre: 'Text-Based RPG', url: 'gm3.html' },
+            { id: 'gm4', title: 'Wordstorm', genre: 'Word / Puzzle', url: 'gm4.html' },
+            { id: 'gm5', title: 'Paint Editor', genre: 'Utility / Art', url: 'gm5.html' },
+            { id: 'gm6', title: 'Dragon Quest', genre: '2D Platformer', url: 'gm6.html' },
+            { id: 'gm7', title: 'AdamCraft', genre: '2D Paper Minecraft', url: 'gm7.html' },
+            { id: 'gm8', title: 'Code IDE', genre: 'Utility / Dev', url: 'gm8.html' },
+            { id: 'gm9', title: 'Neon Drift', genre: 'Sandbox Racer', url: 'gm9.html' },
+            { id: 'gm10', title: 'The Veil', genre: '3D FPS', url: 'gm10.html' },
+            { id: 'gm11', title: 'Street Racer', genre: '3D Racing', url: 'gm11.html' },
+            { id: 'gm12', title: '3D Dino Game', genre: '3D Endless Runner', url: 'gm12.html' },
+            { id: 'gm13', title: 'Space Shooter', genre: '3D Space Shooter', url: 'gm13.html' },
+            { id: 'gm14', title: 'Minecraft Clone', genre: '3D Sandbox', url: 'gm14.html' },
+            { id: 'gm15', title: '3D Chess', genre: 'Board / Strategy', url: 'gm15.html' },
+            { id: 'gm16', title: 'Text to Speech', genre: 'Utility / Audio', url: 'gm16.html' }
+        ];
+
+        let activeGameUrl = "";
+
+        // Built-in username logic handling choices & memory saving
+        function initUsername() {
+            const savedName = localStorage.getItem('launcher_username');
+            if (savedName) {
+                document.getElementById('display-username').innerText = savedName;
+            } else {
+                document.getElementById('display-username').innerText = "Player1";
+            }
+        }
+
+        function changeUsername() {
+            const currentName = document.getElementById('display-username').innerText;
+            const newName = prompt("Enter your custom username:", currentName);
+            
+            if (newName !== null && newName.trim() !== "") {
+                const cleanedName = newName.trim().substring(0, 15); // limit to 15 chars so layout doesn't break
+                localStorage.setItem('launcher_username', cleanedName);
+                document.getElementById('display-username').innerText = cleanedName;
+            }
+        }
+
+        // Function to build the layout grouped by genre
+        function renderGames(searchTerm = "") {
+            const listContainer = document.getElementById('launcher-games-list');
+            listContainer.innerHTML = ""; // Clear existing elements
+
+            // Step 1: Filter games based on search term
+            const cleanSearch = searchTerm.toLowerCase().trim();
+            const filteredGames = GAMES_DATA.filter(game => 
+                game.title.toLowerCase().includes(cleanSearch) || 
+                game.genre.toLowerCase().includes(cleanSearch)
+            );
+
+            // Step 2: Group filtered games by genre
+            const grouped = {};
+            filteredGames.forEach(game => {
+                if (!grouped[game.genre]) {
+                    grouped[game.genre] = [];
+                }
+                grouped[game.genre].push(game);
+            });
+
+            // Step 3: Sort the genres alphabetically
+            const sortedGenres = Object.keys(grouped).sort();
+
+            // Step 4: Generate HTML elements
+            sortedGenres.forEach(genre => {
+                // Create genre heading header
+                const heading = document.createElement('div');
+                heading.className = 'genre-heading';
+                heading.innerText = genre;
+                listContainer.appendChild(heading);
+
+                // Create buttons belonging to this genre
+                grouped[genre].forEach(game => {
+                    const btn = document.createElement('button');
+                    btn.className = 'game-btn';
+                    if (game.url === activeGameUrl) btn.classList.add('active');
+                    
+                    btn.onclick = function() { loadGame(game.url, this); };
+                    btn.innerHTML = `
+                        <span>${game.title}</span>
+                        <span class="game-genre">${game.genre}</span>
+                    `;
+                    listContainer.appendChild(btn);
+                });
+            });
+        }
+
+        // Triggered every time something is typed in the search bar
+        function filterGames() {
+            const query = document.getElementById('search-box').value;
+            renderGames(query);
+        }
+
         function loadGame(gameUrl, buttonElement) {
             const iframe = document.getElementById('game-frame');
             const placeholder = document.getElementById('placeholder-text');
             
-            // Set the iframe source to the selected game file
+            activeGameUrl = gameUrl;
             iframe.src = gameUrl;
             
-            // Show the iframe and hide placeholder text
             iframe.style.display = 'block';
             placeholder.style.display = 'none';
 
-            // Update active styling on sidebar buttons
+            // Reset active style statuses across all generated buttons
             const buttons = document.querySelectorAll('.game-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             buttonElement.classList.add('active');
         }
+
+        // Run on page load to initialize
+        initUsername();
+        renderGames();
     </script>
 </body>
 </html>
