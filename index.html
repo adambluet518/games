@@ -19,6 +19,7 @@
             --sidebar-animation: none;
             --main-animation: none;
             --text-shadow: none;
+            --border-animation: none;
         }
 
         /* Cyberpunk Theme */
@@ -35,6 +36,7 @@
             --sidebar-animation: none;
             --main-animation: none;
             --text-shadow: none;
+            --border-animation: none;
         }
 
         /* Light Theme */
@@ -51,6 +53,7 @@
             --sidebar-animation: none;
             --main-animation: none;
             --text-shadow: none;
+            --border-animation: none;
         }
 
         /* Calm (Sage / Cozy Neutral) */
@@ -67,6 +70,7 @@
             --sidebar-animation: none;
             --main-animation: none;
             --text-shadow: none;
+            --border-animation: none;
         }
 
         /* Retro Arcade (80s Synthwave/Neon) */
@@ -83,6 +87,7 @@
             --sidebar-animation: none;
             --main-animation: none;
             --text-shadow: none;
+            --border-animation: none;
         }
 
         /* Midnight Ocean (Deep Blues) */
@@ -99,9 +104,112 @@
             --sidebar-animation: none;
             --main-animation: none;
             --text-shadow: none;
+            --border-animation: none;
         }
 
-        /* Rainbow Mode (LED Wave Animation) */
+        /* Sunset */
+        [data-theme="sunset"] {
+            --bg-main: #1d1124;
+            --bg-sidebar: #311836;
+            --bg-card: #4d234a;
+            --border-color: #ff758f;
+            --text-main: #ffebd3;
+            --text-muted: #ca8a8a;
+            --accent: #ffb563;
+            --bg-viewport: #120917;
+            --bg-topbar: #241128;
+            --sidebar-animation: none;
+            --main-animation: none;
+            --text-shadow: none;
+            --border-animation: none;
+        }
+
+        /* Forest */
+        [data-theme="forest"] {
+            --bg-main: #13221b;
+            --bg-sidebar: #1c3328;
+            --bg-card: #284437;
+            --border-color: #4f772d;
+            --text-main: #ecf3ee;
+            --text-muted: #90a995;
+            --accent: #52b788;
+            --bg-viewport: #0b1410;
+            --bg-topbar: #162920;
+            --sidebar-animation: none;
+            --main-animation: none;
+            --text-shadow: none;
+            --border-animation: none;
+        }
+
+        /* Toxic */
+        [data-theme="toxic"] {
+            --bg-main: #0d0c10;
+            --bg-sidebar: #15131a;
+            --bg-card: #221d2b;
+            --border-color: #39ff14;
+            --text-main: #adff2f;
+            --text-muted: #796f8a;
+            --accent: #39ff14;
+            --bg-viewport: #070608;
+            --bg-topbar: #110e14;
+            --sidebar-animation: none;
+            --main-animation: none;
+            --text-shadow: 0 0 5px #39ff14;
+            --border-animation: none;
+        }
+
+        /* Rose Gold */
+        [data-theme="rosegold"] {
+            --bg-main: #f7ede2;
+            --bg-sidebar: #f5d6cc;
+            --bg-card: #e8beac;
+            --border-color: #d4a373;
+            --text-main: #4a332d;
+            --text-muted: #8c6a60;
+            --accent: #bc6c25;
+            --bg-viewport: #faf6f0;
+            --bg-topbar: #ecd1c5;
+            --sidebar-animation: none;
+            --main-animation: none;
+            --text-shadow: none;
+            --border-animation: none;
+        }
+
+        /* Glitch */
+        [data-theme="glitch"] {
+            --bg-main: #161033;
+            --bg-sidebar: #1f1747;
+            --bg-card: #2e2269;
+            --border-color: #ff007f;
+            --text-main: #00ffff;
+            --text-muted: #9c8ce7;
+            --accent: #ff007f;
+            --bg-viewport: #0e0a22;
+            --bg-topbar: #18123a;
+            --sidebar-animation: none;
+            --main-animation: none;
+            --text-shadow: 0 0 3px #ff007f, 0 0 3px #00ffff;
+            --border-animation: none;
+        }
+
+        /* Vampire */
+        [data-theme="vampire"] {
+            --bg-main: #100c0c;
+            --bg-sidebar: #1a1212;
+            --bg-card: #291a1a;
+            --border-color: #800000;
+            --text-main: #ffffff;
+            --text-muted: #a67c7c;
+            --accent: #ff0000;
+            --bg-viewport: #0a0707;
+            --bg-topbar: #140d0d;
+            --sidebar-animation: none;
+            --main-animation: none;
+            --text-shadow: 0 0 4px #ff0000;
+            --border-animation: none;
+        }
+
+        /* Flashing rainbow */
         [data-theme="rainbow"] {
             --bg-main: linear-gradient(120deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff, #ff0000);
             --bg-sidebar: linear-gradient(120deg, #1a0000, #1a0d00, #1a1a00, #001a00, #00001a, #0b001a, #14001a, #1a0000);
@@ -112,16 +220,147 @@
             --accent: #ffffff;
             --bg-viewport: #050508;
             --bg-topbar: rgba(0, 0, 0, 0.6);
-            --sidebar-animation: ledChasing 8s linear infinite;
-            --main-animation: ledChasing 8s linear infinite;
+            --sidebar-animation: movingBG 8s linear infinite;
+            --main-animation: movingBG 8s linear infinite;
             --text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+            --border-animation: none;
         }
 
-        /* Animated LED background movement */
-        @keyframes ledChasing {
+        /* ================= 5 NEW ANIMATED MODES ================= */
+        
+        /* 1. Sunset shimmer (Animated Background Sky Flow) */
+        [data-theme="sunset-shimmer"] {
+            --bg-main: linear-gradient(45deg, #1d1124, #4d234a, #ff758f, #ffb563, #1d1124);
+            --bg-sidebar: linear-gradient(45deg, #120917, #241128, #4d234a, #120917);
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --border-color: #ff758f;
+            --text-main: #ffebd3;
+            --text-muted: #ca8a8a;
+            --accent: #ffb563;
+            --bg-viewport: #0d0612;
+            --bg-topbar: rgba(29, 17, 36, 0.7);
+            --sidebar-animation: movingBG 12s ease infinite;
+            --main-animation: movingBG 12s ease infinite;
+            --text-shadow: 0 0 4px rgba(255, 181, 99, 0.4);
+            --border-animation: none;
+        }
+
+        /* 2. Glitch matrix (Flickering Neon text and shifting boundaries) */
+        [data-theme="glitch-matrix"] {
+            --bg-main: #0c081f;
+            --bg-sidebar: #130d2e;
+            --bg-card: #1c1345;
+            --border-color: #ff007f;
+            --text-main: #00ffff;
+            --text-muted: #7f6cb3;
+            --accent: #ff007f;
+            --bg-viewport: #070414;
+            --bg-topbar: #0f0a24;
+            --sidebar-animation: none;
+            --main-animation: none;
+            --text-shadow: 0 0 3px #ff007f, 0 0 3px #00ffff;
+            --border-animation: glitchFlicker 0.4s linear infinite;
+        }
+        [data-theme="glitch-matrix"] .sidebar-header, 
+        [data-theme="glitch-matrix"] .user-name {
+            animation: textVibrate 0.15s linear infinite;
+        }
+
+        /* 3. Toxic hazard (Breathing/Pulsing bio-luminescent borders) */
+        [data-theme="toxic-hazard"] {
+            --bg-main: #0a0a0c;
+            --bg-sidebar: #111114;
+            --bg-card: #18191f;
+            --border-color: #39ff14;
+            --text-main: #adff2f;
+            --text-muted: #5e6952;
+            --accent: #39ff14;
+            --bg-viewport: #050506;
+            --bg-topbar: #0d0d10;
+            --sidebar-animation: none;
+            --main-animation: none;
+            --text-shadow: 0 0 5px #39ff14;
+            --border-animation: toxicPulse 2.5s ease-in-out infinite;
+        }
+
+        /* 4. Cosmic nebula (Swirling deep space plasma) */
+        [data-theme="cosmic-nebula"] {
+            --bg-main: linear-gradient(135deg, #050515, #12072b, #2b0e4a, #07193b, #050515);
+            --bg-sidebar: linear-gradient(135deg, #02020a, #0b041c, #160726, #02020a);
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --border-color: #9d4edd;
+            --text-main: #e0aaff;
+            --text-muted: #7b2cbf;
+            --accent: #240046;
+            --bg-viewport: #020208;
+            --bg-topbar: rgba(10, 5, 25, 0.7);
+            --sidebar-animation: movingBG 16s ease infinite;
+            --main-animation: movingBG 16s ease infinite;
+            --text-shadow: 0 0 8px #c77dff;
+            --border-animation: none;
+        }
+        [data-theme="cosmic-nebula"] .game-btn.active {
+            background: #c77dff;
+            color: #12072b;
+            box-shadow: 0 0 12px #c77dff;
+        }
+
+        /* 5. Magma core (Churning liquid volcano) */
+        [data-theme="magma-core"] {
+            --bg-main: linear-gradient(90deg, #120202, #2d0808, #610c0c, #900c3f, #2d0808, #120202);
+            --bg-sidebar: linear-gradient(90deg, #0d0101, #1f0505, #420808, #0d0101);
+            --bg-card: rgba(0, 0, 0, 0.4);
+            --border-color: #ff4d4d;
+            --text-main: #ffcccc;
+            --text-muted: #803333;
+            --accent: #ff3333;
+            --bg-viewport: #050000;
+            --bg-topbar: rgba(20, 4, 4, 0.8);
+            --sidebar-animation: movingBG 7s linear infinite;
+            --main-animation: movingBG 7s linear infinite;
+            --text-shadow: 0 0 6px #ff3333;
+            --border-animation: none;
+        }
+        [data-theme="magma-core"] .game-btn.active {
+            background: #ff3333;
+            color: #000000;
+            box-shadow: 0 0 10px #ff3333;
+        }
+
+
+        /* ================= ANIMATION KEYFRAMES ================= */
+        @keyframes movingBG {
             0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
             100% { background-position: 200% 50%; }
         }
+
+        @keyframes toxicPulse {
+            0% { border-color: #186609; box-shadow: 0 0 2px #186609; }
+            50% { border-color: #39ff14; box-shadow: 0 0 12px #39ff14; }
+            100% { border-color: #186609; box-shadow: 0 0 2px #186609; }
+        }
+
+        @keyframes glitchFlicker {
+            0% { border-color: #ff007f; box-shadow: 0 0 4px #ff007f; }
+            23% { border-color: #ff007f; }
+            25% { border-color: #00ffff; box-shadow: 0 0 8px #00ffff; }
+            27% { border-color: #ff007f; }
+            78% { border-color: #ff007f; }
+            80% { border-color: #00ffff; box-shadow: 0 0 2px #00ffff; }
+            82% { border-color: #ff007f; }
+            100% { border-color: #ff007f; box-shadow: 0 0 4px #ff007f; }
+        }
+
+        @keyframes textVibrate {
+            0% { transform: translate(0); }
+            20% { transform: translate(-1px, 1px); }
+            40% { transform: translate(-1px, -1px); }
+            60% { transform: translate(1px, 1px); }
+            80% { transform: translate(1px, -1px); }
+            100% { transform: translate(0); }
+        }
+
 
         /* ================= BASE STYLES ================= */
         * {
@@ -146,7 +385,7 @@
             width: 300px;
             background: var(--bg-sidebar);
             background-size: 200% 200%;
-            animation: var(--sidebar-animation);
+            animation: var(--sidebar-animation), var(--border-animation);
             border-right: 2px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -179,7 +418,8 @@
             color: var(--text-main);
             font-size: 0.9rem;
             outline: none;
-            backdrop-filter: blur(4px); /* Clean frosted glass for rainbow mode */
+            backdrop-filter: blur(4px);
+            animation: var(--border-animation);
             transition: background 0.2s, border 0.2s, color 0.2s;
         }
 
@@ -196,6 +436,7 @@
             cursor: pointer;
             font-size: 1.1rem;
             backdrop-filter: blur(4px);
+            animation: var(--border-animation);
             transition: all 0.2s;
         }
 
@@ -239,6 +480,7 @@
             text-align: left;
             cursor: pointer;
             backdrop-filter: blur(4px);
+            animation: var(--border-animation);
             transition: all 0.2s ease;
             display: flex;
             flex-direction: column;
@@ -257,7 +499,6 @@
             border-color: var(--accent);
         }
 
-        /* Specifc adjustments so text stays legible on active active rainbow button */
         [data-theme="rainbow"] .game-btn.active {
             background: #ffffff;
             color: #000000;
@@ -311,6 +552,7 @@
             padding: 15px 25px;
             background: var(--bg-topbar);
             border-bottom: 1px solid var(--border-color);
+            animation: var(--border-animation);
             z-index: 10;
             gap: 15px;
             transition: background 0.2s, border 0.2s;
@@ -326,6 +568,7 @@
             outline: none;
             cursor: pointer;
             backdrop-filter: blur(4px);
+            animation: var(--border-animation);
             transition: background 0.2s, border 0.2s, color 0.2s;
         }
 
@@ -346,6 +589,7 @@
             align-items: center;
             gap: 8px;
             backdrop-filter: blur(4px);
+            animation: var(--border-animation);
             transition: background 0.2s, border 0.2s, color 0.2s;
         }
 
@@ -359,7 +603,6 @@
             font-weight: bold;
         }
 
-        /* Force readable plain contrast inside user prompt window buttons or selections */
         [data-theme="rainbow"] .user-name {
             color: #00ffff;
             text-shadow: 0 0 5px #00ffff;
@@ -417,7 +660,18 @@
                 <option value="calm">Calm (Sage)</option>
                 <option value="retro">Retro Arcade</option>
                 <option value="ocean">Midnight Ocean</option>
-                <option value="rainbow">🌈 Rainbow LED Mode</option>
+                <option value="sunset">Sunset</option>
+                <option value="forest">Forest</option>
+                <option value="toxic">Toxic</option>
+                <option value="rosegold">Rose Gold</option>
+                <option value="glitch">Glitch</option>
+                <option value="vampire">Vampire</option>
+                <option value="rainbow">Flashing rainbow</option>
+                <option value="sunset-shimmer">Sunset shimmer</option>
+                <option value="glitch-matrix">Glitch matrix</option>
+                <option value="toxic-hazard">Toxic hazard</option>
+                <option value="cosmic-nebula">Cosmic nebula</option>
+                <option value="magma-core">Magma core</option>
             </select>
             <div class="user-tag" onclick="changeUsername()">
                 <span>👤 Player:</span>
