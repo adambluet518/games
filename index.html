@@ -226,9 +226,9 @@
             --border-animation: none;
         }
 
-        /* ================= 5 NEW ANIMATED MODES ================= */
+        /* ================= ANIMATED MODES ================= */
         
-        /* 1. Sunset shimmer (Animated Background Sky Flow) */
+        /* Sunset shimmer */
         [data-theme="sunset-shimmer"] {
             --bg-main: linear-gradient(45deg, #1d1124, #4d234a, #ff758f, #ffb563, #1d1124);
             --bg-sidebar: linear-gradient(45deg, #120917, #241128, #4d234a, #120917);
@@ -245,7 +245,7 @@
             --border-animation: none;
         }
 
-        /* 2. Glitch matrix (Flickering Neon text and shifting boundaries) */
+        /* Glitch matrix */
         [data-theme="glitch-matrix"] {
             --bg-main: #0c081f;
             --bg-sidebar: #130d2e;
@@ -266,7 +266,7 @@
             animation: textVibrate 0.15s linear infinite;
         }
 
-        /* 3. Toxic hazard (Breathing/Pulsing bio-luminescent borders) */
+        /* Toxic hazard */
         [data-theme="toxic-hazard"] {
             --bg-main: #0a0a0c;
             --bg-sidebar: #111114;
@@ -283,7 +283,7 @@
             --border-animation: toxicPulse 2.5s ease-in-out infinite;
         }
 
-        /* 4. Cosmic nebula (Swirling deep space plasma) */
+        /* Cosmic nebula */
         [data-theme="cosmic-nebula"] {
             --bg-main: linear-gradient(135deg, #050515, #12072b, #2b0e4a, #07193b, #050515);
             --bg-sidebar: linear-gradient(135deg, #02020a, #0b041c, #160726, #02020a);
@@ -305,7 +305,7 @@
             box-shadow: 0 0 12px #c77dff;
         }
 
-        /* 5. Magma core (Churning liquid volcano) */
+        /* Magma core */
         [data-theme="magma-core"] {
             --bg-main: linear-gradient(90deg, #120202, #2d0808, #610c0c, #900c3f, #2d0808, #120202);
             --bg-sidebar: linear-gradient(90deg, #0d0101, #1f0505, #420808, #0d0101);
@@ -603,6 +603,27 @@
             font-weight: bold;
         }
 
+        /* Sleek Close Button Styles */
+        .close-btn {
+            background-color: #e63946;
+            border: none;
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: none; /* Initially hidden */
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .close-btn:hover {
+            background-color: #ff4d5a;
+            transform: scale(1.03);
+        }
+
         [data-theme="rainbow"] .user-name {
             color: #00ffff;
             text-shadow: 0 0 5px #00ffff;
@@ -653,6 +674,8 @@
 
     <div class="main-content">
         <div class="top-bar">
+            <button id="close-game-btn" class="close-btn" onclick="closeActiveGame()">❌ Close Game</button>
+            
             <select id="theme-picker" class="theme-select" onchange="changeTheme(this.value)">
                 <option value="default">Dark Mode</option>
                 <option value="light">Light Mode</option>
@@ -775,12 +798,14 @@
         function loadGame(game) {
             const iframe = document.getElementById('game-frame');
             const placeholder = document.getElementById('placeholder-text');
+            const closeBtn = document.getElementById('close-game-btn');
             
             clearInterval(playtimeTicker);
             activeGameId = game.id;
             iframe.src = game.url;
             iframe.style.display = 'block';
             placeholder.style.display = 'none';
+            closeBtn.style.display = 'flex'; // Display close option instantly
 
             playtimeTicker = setInterval(() => {
                 if (!playtimes[game.id]) playtimes[game.id] = 0;
@@ -789,6 +814,26 @@
                 renderGames(document.getElementById('search-box').value);
             }, 10000);
 
+            renderGames(document.getElementById('search-box').value);
+        }
+
+        // Logic function to exit current loaded module cleanly
+        function closeActiveGame() {
+            const iframe = document.getElementById('game-frame');
+            const placeholder = document.getElementById('placeholder-text');
+            const closeBtn = document.getElementById('close-game-btn');
+            
+            clearInterval(playtimeTicker);
+            activeGameId = "";
+            iframe.src = "";
+            iframe.style.display = 'none';
+            placeholder.style.display = 'block';
+            closeBtn.style.display = 'none'; // Hide close button away again
+
+            renderGames(document.getElementById('search-box').value);
+        }
+
+        function filterGames() {
             renderGames(document.getElementById('search-box').value);
         }
 
