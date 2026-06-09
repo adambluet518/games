@@ -313,7 +313,7 @@
                     <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
                 </div>
             </div>
-            <audio id="bg-music" src="./launcher_music.mp3" loop></audio>
+            <audio id="bg-music" src="./launcher_music.ogg" loop></audio>
         </div>
     </div>
 
@@ -333,7 +333,6 @@
         
         let previousVolume = 0.5;
 
-        // Set initial browser volume structure
         music.volume = 0.5;
 
         function togglePlay() {
@@ -370,7 +369,6 @@
                 music.muted = true;
             } else {
                 music.muted = false;
-                // Dynamically swap icon designs based on noise levels
                 if(val < 0.4) {
                     muteBtn.innerText = '🔉';
                 } else {
