@@ -45,7 +45,7 @@
             padding: 15px;
         }
 
-        /* Custom Scrollbar for a cleaner look */
+        /* Custom Scrollbar */
         .games-list::-webkit-scrollbar {
             width: 6px;
         }
@@ -113,10 +113,10 @@
             height: 100%;
             border: none;
             background-color: #09090a;
-            display: none; /* Hidden until a game is selected */
+            display: none;
         }
 
-        /* Placeholder view when no game is running */
+        /* Placeholder view */
         .placeholder {
             position: absolute;
             top: 50%;
@@ -221,14 +221,12 @@
             const iframe = document.getElementById('game-frame');
             const placeholder = document.getElementById('placeholder-text');
             
-            // Set the iframe source to the selected game file
-            iframe.src = gameUrl;
+            // FIX: Explicitly enforce relative pathing for GitHub Pages subdirectories
+            iframe.src = './' + gameUrl;
             
-            // Show the iframe and hide placeholder text
             iframe.style.display = 'block';
             placeholder.style.display = 'none';
 
-            // Update active styling on sidebar buttons
             const buttons = document.querySelectorAll('.game-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
             buttonElement.classList.add('active');
