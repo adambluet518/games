@@ -9,11 +9,11 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            background-color: #121214;
+            background-color: #0b0b0d;
             color: #e1e1e6;
             display: flex;
             height: 100vh;
@@ -22,27 +22,30 @@
 
         /* Sidebar styling */
         .sidebar {
-            width: 300px;
-            background-color: #1a1a1e;
-            border-right: 2px solid #29292e;
+            width: 320px;
+            background-color: #121216;
+            border-right: 1px solid #22222a;
             display: flex;
             flex-direction: column;
             height: 100%;
         }
 
         .sidebar-header {
-            padding: 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            padding: 24px 20px;
+            font-size: 1.3rem;
+            font-weight: 800;
             color: #4ea8de;
-            border-bottom: 1px solid #29292e;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #22222a;
             text-align: center;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(78, 168, 222, 0.3);
         }
 
         .games-list {
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
+            padding: 20px 15px;
         }
 
         /* Custom Scrollbar */
@@ -50,11 +53,11 @@
             width: 6px;
         }
         .games-list::-webkit-scrollbar-track {
-            background: #1a1a1e;
+            background: #121216;
         }
         .games-list::-webkit-scrollbar-thumb {
-            background: #29292e;
-            border-radius: 3px;
+            background: #22222a;
+            border-radius: 20px;
         }
         .games-list::-webkit-scrollbar-thumb:hover {
             background: #4ea8de;
@@ -63,40 +66,128 @@
         /* Game Button Styling */
         .game-btn {
             width: 100%;
-            background-color: #202024;
-            border: 1px solid #29292e;
-            color: #e1e1e6;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
+            background: linear-gradient(135deg, #181820 0%, #15151b 100%);
+            border: 1px solid #22222a;
+            color: #c4c4cc;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border-radius: 8px;
             text-align: left;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
         }
 
         .game-btn:hover {
-            background-color: #29292e;
+            color: #ffffff;
             border-color: #4ea8de;
-            transform: translateX(4px);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78, 168, 222, 0.15);
         }
 
         .game-btn.active {
-            background-color: #4ea8de;
-            color: #121214;
-            font-weight: bold;
+            background: linear-gradient(135deg, #4ea8de 0%, #3a8cb7 100%);
+            color: #0b0b0d;
+            font-weight: 700;
             border-color: #4ea8de;
+            box-shadow: 0 0 15px rgba(78, 168, 222, 0.4);
+        }
+
+        .game-title {
+            font-size: 0.95rem;
+            font-weight: 600;
         }
 
         .game-genre {
             font-size: 0.75rem;
-            color: #8d8d99;
+            color: #7c7c8a;
             margin-top: 4px;
+            transition: color 0.2s ease;
         }
 
         .game-btn.active .game-genre {
-            color: #202024;
+            color: #1c3d52;
+            font-weight: 600;
+        }
+
+        /* Audio Player Controller Widget */
+        .audio-player {
+            background-color: #16161c;
+            border-top: 1px solid #22222a;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .audio-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #9e9eac;
+        }
+
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .audio-btn {
+            background: #22222a;
+            border: 1px solid #2d2d37;
+            color: #e1e1e6;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .audio-btn:hover {
+            background: #2d2d37;
+            border-color: #4ea8de;
+            color: #4ea8de;
+        }
+
+        .volume-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .volume-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #22222a;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4ea8de;
+            transition: transform 0.1s;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #ffffff;
         }
 
         /* Main Viewport / Iframe styling */
@@ -104,7 +195,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: #09090a;
+            background-color: #070708;
             position: relative;
         }
 
@@ -112,23 +203,25 @@
             width: 100%;
             height: 100%;
             border: none;
-            background-color: #09090a;
+            background-color: #070708;
             display: none;
         }
 
-        /* Placeholder view */
+        /* Placeholder view when no game is running */
         .placeholder {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            color: #8d8d99;
+            color: #7c7c8a;
         }
 
         .placeholder h2 {
-            color: #e1e1e6;
-            margin-bottom: 10px;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
         }
     </style>
 </head>
@@ -136,75 +229,91 @@
 
     <div class="sidebar">
         <div class="sidebar-header">🕹️ Game Launcher</div>
+        
         <div class="games-list">
             <button class="game-btn" onclick="loadGame('gm1.html', this)">
-                <span>Block Blast</span>
+                <span class="game-title">Block Blast</span>
                 <span class="game-genre">Puzzle</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm2.html', this)">
-                <span>Cookie Clicker</span>
+                <span class="game-title">Cookie Clicker</span>
                 <span class="game-genre">Idle / Clicker</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm3.html', this)">
-                <span>Depths of Aeloria</span>
+                <span class="game-title">Depths of Aeloria</span>
                 <span class="game-genre">Text-Based RPG</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm4.html', this)">
-                <span>Wordstorm</span>
+                <span class="game-title">Wordstorm</span>
                 <span class="game-genre">Word / Puzzle</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm5.html', this)">
-                <span>Paint Editor</span>
+                <span class="game-title">Paint Editor</span>
                 <span class="game-genre">Utility / Art</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm6.html', this)">
-                <span>Dragon Quest</span>
+                <span class="game-title">Dragon Quest</span>
                 <span class="game-genre">2D Platformer</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm7.html', this)">
-                <span>AdamCraft</span>
+                <span class="game-title">AdamCraft</span>
                 <span class="game-genre">2D Paper Minecraft</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm8.html', this)">
-                <span>Code IDE</span>
+                <span class="game-title">Code IDE</span>
                 <span class="game-genre">Utility / Dev</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm9.html', this)">
-                <span>Neon Drift</span>
+                <span class="game-title">Neon Drift</span>
                 <span class="game-genre">Sandbox Racer</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm10.html', this)">
-                <span>The Veil</span>
+                <span class="game-title">The Veil</span>
                 <span class="game-genre">3D FPS</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm11.html', this)">
-                <span>Street Racer</span>
+                <span class="game-title">Street Racer</span>
                 <span class="game-genre">3D Racing</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm12.html', this)">
-                <span>3D Dino Game</span>
+                <span class="game-title">3D Dino Game</span>
                 <span class="game-genre">3D Endless Runner</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm13.html', this)">
-                <span>Space Shooter</span>
+                <span class="game-title">Space Shooter</span>
                 <span class="game-genre">3D Space Shooter</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm14.html', this)">
-                <span>Minecraft Clone</span>
+                <span class="game-title">Minecraft Clone</span>
                 <span class="game-genre">3D Sandbox</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm15.html', this)">
-                <span>3D Chess</span>
+                <span class="game-title">3D Chess</span>
                 <span class="game-genre">Board Game / Strategy</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm16.html', this)">
-                <span>Speech to Text</span>
+                <span class="game-title">Speech to Text</span>
                 <span class="game-genre">Utility / AI</span>
             </button>
             <button class="game-btn" onclick="loadGame('gm17.html', this)">
-                <span>Candy Crush</span>
+                <span class="game-title">Candy Crush</span>
                 <span class="game-genre">Match-3 Puzzle</span>
             </button>
+        </div>
+
+        <div class="audio-player">
+            <div class="audio-info">
+                <span>🎵</span>
+                <span style="font-weight: 600;">Launcher Music</span>
+            </div>
+            <div class="audio-controls">
+                <button class="audio-btn" id="play-btn" onclick="togglePlay()">▶</button>
+                <button class="audio-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
+                <div class="volume-container">
+                    <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
+                </div>
+            </div>
+            <audio id="bg-music" src="./launcher_music.mp3" loop></audio>
         </div>
     </div>
 
@@ -217,13 +326,64 @@
     </div>
 
     <script>
+        const music = document.getElementById('bg-music');
+        const playBtn = document.getElementById('play-btn');
+        const muteBtn = document.getElementById('mute-btn');
+        const volumeSlider = document.getElementById('volume-slider');
+        
+        let previousVolume = 0.5;
+
+        // Set initial browser volume structure
+        music.volume = 0.5;
+
+        function togglePlay() {
+            if (music.paused) {
+                music.play().then(() => {
+                    playBtn.innerText = '⏸';
+                }).catch(err => {
+                    console.log("Audio couldn't auto-start without user gesture first.", err);
+                });
+            } else {
+                music.pause();
+                playBtn.innerText = '▶';
+            }
+        }
+
+        function toggleMute() {
+            if (music.muted) {
+                music.muted = false;
+                volumeSlider.value = previousVolume;
+                music.volume = previousVolume;
+                muteBtn.innerText = previousVolume == 0 ? '🔇' : '🔊';
+            } else {
+                previousVolume = music.volume;
+                music.muted = true;
+                volumeSlider.value = 0;
+                muteBtn.innerText = '🔇';
+            }
+        }
+
+        function updateVolume(val) {
+            music.volume = val;
+            if (val == 0) {
+                muteBtn.innerText = '🔇';
+                music.muted = true;
+            } else {
+                music.muted = false;
+                // Dynamically swap icon designs based on noise levels
+                if(val < 0.4) {
+                    muteBtn.innerText = '🔉';
+                } else {
+                    muteBtn.innerText = '🔊';
+                }
+            }
+        }
+
         function loadGame(gameUrl, buttonElement) {
             const iframe = document.getElementById('game-frame');
             const placeholder = document.getElementById('placeholder-text');
             
-            // FIX: Explicitly enforce relative pathing for GitHub Pages subdirectories
             iframe.src = './' + gameUrl;
-            
             iframe.style.display = 'block';
             placeholder.style.display = 'none';
 
