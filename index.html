@@ -313,7 +313,7 @@
                     <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="0.5" oninput="updateVolume(this.value)">
                 </div>
             </div>
-            <audio id="bg-music" src="./launcher_music.ogg" loop></audio>
+            <audio id="bg-music" src="./launcher_music.ogg" loop preload="auto"></audio>
         </div>
     </div>
 
@@ -333,14 +333,17 @@
         
         let previousVolume = 0.5;
 
+        // Force browser to set safe starting parameters
         music.volume = 0.5;
 
         function togglePlay() {
             if (music.paused) {
+                // Fixed logic: explicitly handle browser async stream promises safely
                 music.play().then(() => {
                     playBtn.innerText = '⏸';
                 }).catch(err => {
-                    console.log("Audio couldn't auto-start without user gesture first.", err);
+                    console.error("Audio block encountered:", err);
+                    alert("Please click anywhere on the page first, then hit play!");
                 });
             } else {
                 music.pause();
@@ -364,12 +367,12 @@
 
         function updateVolume(val) {
             music.volume = val;
-            if (val == 0) {
+            if (parseFloat(val) === 0) {
                 muteBtn.innerText = '🔇';
                 music.muted = true;
             } else {
                 music.muted = false;
-                if(val < 0.4) {
+                if(parseFloat(val) < 0.4) {
                     muteBtn.innerText = '🔉';
                 } else {
                     muteBtn.innerText = '🔊';
