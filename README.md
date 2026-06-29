@@ -6,4 +6,4 @@ This is mc clone running at 60 fps.
 
 Updates are constant
 I will try to notify every thime it goes down on discord https://discord.gg/SKtz2egK5v join my server to get constant updates!
-(if link fails dm adam_is_the_best_ fdor help)
+(if link fails dm adam_is_the_best_ for help)
