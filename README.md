@@ -5,5 +5,5 @@ on low end computers i have a realy old macosv11.7.11 and i am able to run all g
 This is mc clone running at 60 fps.
 
 Updates are constant
-I will try to notify every thime it goes down on discord https://discord.gg/SKtz2egK5v join my server to get constant updates!
+I will try to notify every time it goes down on discord https://discord.gg/SKtz2egK5v join my server to get constant updates!
 (if link fails dm adam_is_the_best_    for help)
