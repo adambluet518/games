@@ -1,4 +1,4 @@
-<!-- Awatch v5.1 - localStorage accounts + jsonbin sync + likes/dislikes/views + per-user voting -->
+<!-- Awatch v5.2 - Admin delete + username protection -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,16 +17,19 @@
     .btn-outline { background:transparent; border:1px solid #ff4d4d; color:#ff4d4d; }
     .btn-outline:hover { background:rgba(255,77,77,0.1); }
     .videos-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:20px; padding:20px; }
-    .video-card { background:#272727; border-radius:12px; overflow:hidden; cursor:pointer; transition:transform 0.2s; }
+    .video-card { background:#272727; border-radius:12px; overflow:hidden; cursor:pointer; transition:transform 0.2s; position:relative; }
     .video-card:hover { transform:scale(1.02); }
     .thumbnail { width:100%; height:180px; background:#111; display:flex; align-items:center; justify-content:center; font-size:3rem; color:#666; position:relative; }
     .thumbnail .view-count { position:absolute; bottom:8px; right:10px; background:rgba(0,0,0,0.8); padding:2px 8px; border-radius:10px; font-size:0.65rem; color:#ccc; }
     .video-info { padding:10px; } .video-title { font-weight:bold; margin-bottom:5px; } .video-meta { font-size:0.85rem; color:#aaa; }
-    .video-actions { display:flex; gap:8px; margin-top:8px; align-items:center; }
+    .video-actions { display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap; }
     .vote-btn { background:#333; border:none; color:white; padding:5px 12px; border-radius:20px; cursor:pointer; font-size:0.8rem; transition:0.2s; display:flex; align-items:center; gap:4px; }
     .vote-btn:hover { background:#444; }
     .vote-btn.voted-like { background:#2d8a4e; border:1px solid #3cb371; }
     .vote-btn.voted-dislike { background:#8a2d2d; border:1px solid #c0392b; }
+    .delete-btn { background:#8a2d2d; border:none; color:#ff6666; padding:5px 12px; border-radius:20px; cursor:pointer; font-size:0.8rem; transition:0.2s; margin-left:auto; }
+    .delete-btn:hover { background:#c0392b; color:white; }
+    .admin-badge { background:#ff4d4d; color:white; padding:1px 6px; border-radius:8px; font-size:0.55rem; margin-left:4px; }
     .upload-area { display:flex; justify-content:center; margin:20px; flex-direction:column; align-items:center; gap:10px; }
     progress { width:300px; }
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:200; }
@@ -49,13 +52,13 @@
 </head>
 <body>
   <header>
-    <div class="logo">A<span>watch</span><span class="version-badge">v5.1</span></div>
+    <div class="logo">A<span>watch</span><span class="version-badge">v5.2</span></div>
     <div class="user-actions" id="userActions"></div>
   </header>
 
   <div class="info-notification" id="infoNotification">
     <span class="info-icon">🌐</span>
-    <span><strong>Hybrid Mode:</strong> Accounts per-device · Videos sync across devices · 👍👎 per user</span>
+    <span><strong>Hybrid Mode:</strong> Accounts per-device · Videos sync across devices · Admin controls active</span>
     <button id="dismissInfo">Got it</button>
   </div>
 
@@ -69,7 +72,7 @@
   <div class="videos-grid" id="videosGrid"></div>
   <div class="sync-status" id="syncStatus">🔄 Syncing videos...</div>
   <div class="footer-note">
-    💾 Accounts local · 🌐 Videos synced · <span id="videoCount">0 videos</span>
+    💾 Accounts local · 🌐 Videos synced · 🛡️ Admin: adamblue · <span id="videoCount">0 videos</span>
   </div>
 
   <div class="modal" id="authModal">
@@ -90,16 +93,13 @@
   </div>
 
   <script>
-    console.log('🎬 Awatch v5.1 - per-user voting edition');
+    console.log('🎬 Awatch v5.2 - Admin delete + username protection');
 
+    const ADMIN_USERNAME = 'adamblue';
     const JSONBIN_API_KEY = '$2a$10$s1NWFEk6L07QrlUn3r278uXEmk1d7l7HJ1gLWiYp0CfUkecbXAu6S';
     const JSONBIN_BIN_ID = '6a4575e4da38895dfe1e3d83';
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
-    const JSONBIN_HEADERS = {
-      'Content-Type': 'application/json',
-      'X-Master-Key': JSONBIN_API_KEY
-    };
-
+    const JSONBIN_HEADERS = { 'Content-Type':'application/json', 'X-Master-Key':JSONBIN_API_KEY };
     const USERS_KEY = 'awatch_users';
     const CURRENT_USER_KEY = 'awatch_current_user';
     const INFO_DISMISSED_KEY = 'awatch_info_dismissed';
@@ -131,12 +131,10 @@
     let isSignUp = false;
     let currentUser = null;
     let allVideos = [];
+    let isAdmin = false;
 
     if (localStorage.getItem(INFO_DISMISSED_KEY) === 'true') infoNotification.style.display = 'none';
-    dismissInfo.addEventListener('click', () => {
-      infoNotification.style.display = 'none';
-      localStorage.setItem(INFO_DISMISSED_KEY, 'true');
-    });
+    dismissInfo.addEventListener('click', () => { infoNotification.style.display = 'none'; localStorage.setItem(INFO_DISMISSED_KEY, 'true'); });
 
     function getUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch(e) { return {}; } }
     function saveUsers(users) { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
@@ -159,20 +157,51 @@
     toggleAuth.addEventListener('click', (e) => { e.preventDefault(); isSignUp = !isSignUp; updateAuthModal(); });
     closeAuth.addEventListener('click', () => authModal.classList.remove('active'));
 
-    authActionBtn.addEventListener('click', () => {
+    // Username protection: Check if username exists in the bin (global check)
+    async function isUsernameTakenGlobally(username) {
+      try {
+        const binId = localStorage.getItem('awatch_bin_id') || JSONBIN_BIN_ID;
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Master-Key': JSONBIN_API_KEY } });
+        if (!response.ok) return false;
+        const data = await response.json();
+        const videos = data.record?.videos || [];
+        // Check if any video was uploaded by this username
+        return videos.some(v => v.uploader && v.uploader.toLowerCase() === username.toLowerCase());
+      } catch(e) { return false; }
+    }
+
+    authActionBtn.addEventListener('click', async () => {
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
       if (!username || !password) { authError.textContent = 'Please fill in all fields.'; return; }
+      
       const users = getUsers();
+      
       if (isSignUp) {
-        if (users[username]) { authError.textContent = 'Username already exists!'; return; }
+        // Local check
+        if (users[username]) { authError.textContent = 'Username already exists on this device!'; return; }
+        
+        // Admin protection: no one else can be adamblue (case insensitive)
+        if (username.toLowerCase() === ADMIN_USERNAME.toLowerCase() && username !== ADMIN_USERNAME) {
+          authError.textContent = 'Username reserved. Choose another.'; return;
+        }
+        
+        // Prevent registering as admin if not the original
+        if (username.toLowerCase() === ADMIN_USERNAME.toLowerCase()) {
+          // Check if admin account already exists locally
+          if (users[ADMIN_USERNAME]) {
+            authError.textContent = 'Admin account already exists on this device. Sign in instead.';
+            return;
+          }
+        }
+        
         users[username] = { password, createdAt: Date.now() };
         saveUsers(users);
         localStorage.setItem(CURRENT_USER_KEY, username);
         authModal.classList.remove('active');
         loginSuccess(username);
       } else {
-        if (!users[username]) { authError.textContent = 'User not found!'; return; }
+        if (!users[username]) { authError.textContent = 'User not found on this device!'; return; }
         if (users[username].password !== password) { authError.textContent = 'Wrong password!'; return; }
         localStorage.setItem(CURRENT_USER_KEY, username);
         authModal.classList.remove('active');
@@ -180,12 +209,18 @@
       }
     });
 
-    function loginSuccess(username) { currentUser = username; renderLoggedInUI(); loadVideosFromBin(); }
+    function loginSuccess(username) { 
+      currentUser = username; 
+      isAdmin = (username === ADMIN_USERNAME);
+      renderLoggedInUI(); 
+      loadVideosFromBin(); 
+    }
 
     function renderLoggedInUI() {
-      userActionsDiv.innerHTML = `<span class="user-greeting">👤 ${escapeHtml(currentUser)}</span><button class="btn btn-outline" id="logoutBtn">Logout</button>`;
+      const adminBadge = isAdmin ? '<span class="admin-badge">ADMIN</span>' : '';
+      userActionsDiv.innerHTML = `<span class="user-greeting">👤 ${escapeHtml(currentUser)}${adminBadge}</span><button class="btn btn-outline" id="logoutBtn">Logout</button>`;
       document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.removeItem(CURRENT_USER_KEY); currentUser = null; renderLoggedOutUI(); loadVideosFromBin();
+        localStorage.removeItem(CURRENT_USER_KEY); currentUser = null; isAdmin = false; renderLoggedOutUI(); loadVideosFromBin();
       });
       uploadArea.style.display = 'flex';
     }
@@ -198,8 +233,31 @@
 
     async function saveVideosToBin() {
       const binId = localStorage.getItem('awatch_bin_id') || JSONBIN_BIN_ID;
-      await fetch(`https://api.jsonbin.io/v3/b/${binId}`, { method: 'PUT', headers: JSONBIN_HEADERS, body: JSON.stringify({ videos: allVideos }) });
+      await fetch(`https://api.jsonbin.io/v3/b/${binId}`, { method:'PUT', headers:JSONBIN_HEADERS, body:JSON.stringify({ videos:allVideos }) });
       localStorage.setItem('awatch_video_cache', JSON.stringify(allVideos));
+    }
+
+    async function deleteVideo(url) {
+      if (!currentUser) return;
+      
+      const video = allVideos.find(v => v.url === url);
+      if (!video) return;
+      
+      // Check permission: admin can delete any, users can delete their own
+      if (!isAdmin && video.uploader !== currentUser) {
+        alert('You can only delete your own videos.');
+        return;
+      }
+      
+      const confirmMsg = isAdmin && video.uploader !== currentUser 
+        ? `Admin: Delete "${video.title}" by ${video.uploader}?`
+        : `Delete your video "${video.title}"?`;
+      
+      if (!confirm(confirmMsg)) return;
+      
+      allVideos = allVideos.filter(v => v.url !== url);
+      await saveVideosToBin();
+      renderVideoGrid();
     }
 
     async function loadVideosFromBin() {
@@ -207,7 +265,7 @@
       videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;">Loading videos...</p>';
       try {
         const binId = localStorage.getItem('awatch_bin_id') || JSONBIN_BIN_ID;
-        const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Master-Key': JSONBIN_API_KEY } });
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers:{ 'X-Master-Key':JSONBIN_API_KEY } });
         if (!response.ok) throw new Error('Failed to load');
         const data = await response.json();
         allVideos = data.record?.videos || [];
@@ -236,12 +294,27 @@
       if (existing) return;
       const views = data.views || 0;
       const viewText = views === 1 ? '1 view' : `${views} views`;
+      const canDelete = isAdmin || (currentUser && data.uploader === currentUser);
+      
       const card = document.createElement('div');
       card.className = 'video-card';
       card.setAttribute('data-url', data.url);
-      card.innerHTML = `<div class="thumbnail">▶️<div class="view-count">👁 ${viewText}</div></div><div class="video-info"><div class="video-title">${escapeHtml(data.title)}</div><div class="video-meta">${escapeHtml(data.uploader || 'Unknown')} • ${timeAgo(data.uploadedAt)}</div><div class="video-actions"><button class="vote-btn like-btn" data-url="${data.url.replace(/"/g, '&quot;')}">👍 <span>${data.likes || 0}</span></button><button class="vote-btn dislike-btn" data-url="${data.url.replace(/"/g, '&quot;')}">👎 <span>${data.dislikes || 0}</span></button></div></div>`;
+      card.innerHTML = `
+        <div class="thumbnail">▶️<div class="view-count">👁 ${viewText}</div></div>
+        <div class="video-info">
+          <div class="video-title">${escapeHtml(data.title)}</div>
+          <div class="video-meta">${escapeHtml(data.uploader || 'Unknown')}${data.uploader === ADMIN_USERNAME ? ' <span class="admin-badge">ADMIN</span>' : ''} • ${timeAgo(data.uploadedAt)}</div>
+          <div class="video-actions">
+            <button class="vote-btn like-btn">👍 <span>${data.likes || 0}</span></button>
+            <button class="vote-btn dislike-btn">👎 <span>${data.dislikes || 0}</span></button>
+            ${canDelete ? `<button class="delete-btn">🗑 Delete</button>` : ''}
+          </div>
+        </div>`;
 
-      card.addEventListener('click', () => { data.views = (data.views || 0) + 1; saveVideosToBin(); playVideo(data.url); renderVideoGrid(); });
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.vote-btn') || e.target.closest('.delete-btn')) return;
+        data.views = (data.views || 0) + 1; saveVideosToBin(); playVideo(data.url); renderVideoGrid();
+      });
 
       card.querySelector('.like-btn').addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -271,6 +344,14 @@
         renderVideoGrid();
       });
 
+      const delBtn = card.querySelector('.delete-btn');
+      if (delBtn) {
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteVideo(data.url);
+        });
+      }
+
       const userVotes = getUserVotes();
       const myVote = userVotes[`${currentUser}_${data.url}`];
       if (myVote === 'like') card.querySelector('.like-btn').classList.add('voted-like');
@@ -289,16 +370,16 @@
       uploadProgress.style.display = 'block'; uploadProgress.value = 0; uploadStatus.textContent = 'Uploading video...';
       try {
         const formData = new FormData(); formData.append('file', file);
-        const uploadResponse = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: formData });
+        const uploadResponse = await fetch('https://tmpfiles.org/api/v1/upload', { method:'POST', body:formData });
         if (!uploadResponse.ok) throw new Error('Video upload failed');
         const uploadData = await uploadResponse.json();
         const fileUrl = uploadData.data.url.replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/');
         uploadStatus.textContent = 'Syncing...';
         const binId = localStorage.getItem('awatch_bin_id') || JSONBIN_BIN_ID;
         let currentVideos = [];
-        try { const getResponse = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers: { 'X-Master-Key': JSONBIN_API_KEY } }); if (getResponse.ok) { const d = await getResponse.json(); currentVideos = d.record?.videos || []; } } catch(e) {}
-        currentVideos.push({ title: file.name.replace(/\.[^/.]+$/, ""), url: fileUrl, uploader: currentUser, uploadedAt: Date.now(), likes: 0, dislikes: 0, views: 0 });
-        const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, { method: 'PUT', headers: JSONBIN_HEADERS, body: JSON.stringify({ videos: currentVideos }) });
+        try { const getResponse = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, { headers:{ 'X-Master-Key':JSONBIN_API_KEY } }); if (getResponse.ok) { const d = await getResponse.json(); currentVideos = d.record?.videos || []; } } catch(e) {}
+        currentVideos.push({ title:file.name.replace(/\.[^/.]+$/, ""), url:fileUrl, uploader:currentUser, uploadedAt:Date.now(), likes:0, dislikes:0, views:0 });
+        const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, { method:'PUT', headers:JSONBIN_HEADERS, body:JSON.stringify({ videos:currentVideos }) });
         if (!updateResponse.ok) throw new Error('Sync failed');
         allVideos = currentVideos;
         localStorage.setItem('awatch_video_cache', JSON.stringify(allVideos));
