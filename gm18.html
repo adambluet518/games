@@ -1,3 +1,4 @@
+<!-- Awatch v2 - tmpfiles.org edition -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,6 +12,7 @@
     body { font-family:'Segoe UI',Roboto,sans-serif; background:#0f0f0f; color:white; }
     header { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; background:#202020; position:sticky; top:0; z-index:100; }
     .logo { font-size:1.8rem; font-weight:bold; color:#ff4d4d; } .logo span { color:white; }
+    .version-badge { background:#ff4d4d33; color:#ff4d4d; padding:2px 8px; border-radius:10px; font-size:0.6rem; font-weight:bold; margin-left:6px; }
     .user-actions { display:flex; gap:10px; align-items:center; }
     .btn { background:#ff4d4d; border:none; color:white; padding:8px 16px; border-radius:20px; cursor:pointer; font-weight:bold; }
     .btn:hover { background:#e60000; }
@@ -37,7 +39,7 @@
 </head>
 <body>
   <header>
-    <div class="logo">A<span>watch</span></div>
+    <div class="logo">A<span>watch</span><span class="version-badge">v2</span></div>
     <div class="user-actions" id="userActions"></div>
   </header>
 
@@ -70,7 +72,7 @@
   </div>
 
   <script>
-    // ============ Gun + SEA setup (zero config) ============
+    // ============ Gun + SEA setup (zero config) v2 ============
     const gun = Gun(['https://gun-manhattan.herokuapp.com/gun', 'https://peer.wallie.io/gun']);
     const user = gun.user();
 
@@ -96,6 +98,8 @@
 
     let isSignUp = false;
     let currentUser = null;
+
+    console.log('🎬 Awatch v2 loaded - tmpfiles.org edition');
 
     // ── Auth modal logic ──
     function updateAuthModal() {
