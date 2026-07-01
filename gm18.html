@@ -20,8 +20,8 @@
     .video-card:hover { transform:scale(1.02); }
     .thumbnail { width:100%; height:180px; background:#111; display:flex; align-items:center; justify-content:center; font-size:3rem; color:#666; }
     .video-info { padding:10px; } .video-title { font-weight:bold; margin-bottom:5px; } .video-meta { font-size:0.85rem; color:#aaa; }
-    .upload-area { display:flex; justify-content:center; margin:20px; }
-    progress { width:100%; margin-top:8px; }
+    .upload-area { display:flex; justify-content:center; margin:20px; flex-direction:column; align-items:center; gap:10px; }
+    progress { width:300px; }
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:200; }
     .modal.active { display:flex; }
     .modal-content { background:#202020; padding:30px; border-radius:15px; width:90%; max-width:400px; text-align:center; }
@@ -32,6 +32,7 @@
     .player-overlay video { max-width:90%; max-height:80%; border-radius:10px; }
     .close-player { position:absolute; top:20px; right:30px; font-size:2rem; cursor:pointer; }
     .user-greeting { margin-right:10px; }
+    .upload-status { color:#4ea8de; font-size:0.9rem; }
   </style>
 </head>
 <body>
@@ -44,6 +45,7 @@
     <input type="file" id="videoFile" accept="video/*" style="display:none;">
     <button class="btn" id="uploadBtn">📤 Upload Video</button>
     <progress id="uploadProgress" value="0" max="100" style="display:none;"></progress>
+    <span class="upload-status" id="uploadStatus"></span>
   </div>
 
   <div class="videos-grid" id="videosGrid"></div>
@@ -69,7 +71,7 @@
 
   <script>
     // ============ Gun + SEA setup (zero config) ============
-    const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+    const gun = Gun(['https://gun-manhattan.herokuapp.com/gun', 'https://peer.wallie.io/gun']);
     const user = gun.user();
 
     // UI elements
@@ -79,6 +81,7 @@
     const videoFileInput = document.getElementById('videoFile');
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadProgress = document.getElementById('uploadProgress');
+    const uploadStatus = document.getElementById('uploadStatus');
     const authModal = document.getElementById('authModal');
     const closeAuth = document.getElementById('closeAuth');
     const authTitle = document.getElementById('authTitle');
@@ -176,7 +179,7 @@
       uploadArea.style.display = 'none';
     }
 
-    // ── Upload to catbox.moe ──
+    // ── Upload to tmpfiles.org ──
     uploadBtn.addEventListener('click', () => videoFileInput.click());
 
     videoFileInput.addEventListener('change', async (e) => {
@@ -187,37 +190,56 @@
         return;
       }
 
-      const formData = new FormData();
-      formData.append('reqtype', 'fileupload');
-      formData.append('fileToUpload', file);
+      // Check file size (tmpfiles.org limit is 100MB)
+      if (file.size > 100 * 1024 * 1024) {
+        alert('File too large! Max 100MB for free uploads.');
+        return;
+      }
 
       uploadProgress.style.display = 'block';
       uploadProgress.value = 0;
+      uploadStatus.textContent = 'Uploading...';
 
       try {
-        const response = await fetch('https://catbox.moe/user/api.php', {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('https://tmpfiles.org/api/v1/upload', {
           method: 'POST',
           body: formData
         });
 
-        if (!response.ok) throw new Error('Upload failed');
-        const url = await response.text();
-        if (!url.startsWith('http')) throw new Error(url);
-
+        if (!response.ok) throw new Error('Upload failed: ' + response.status);
+        
+        const data = await response.json();
+        
+        // tmpfiles.org returns URL like: https://tmpfiles.org/12345/filename.mp4
+        // We need to change it to: https://tmpfiles.org/dl/12345/filename.mp4 for direct download
+        const fileUrl = data.data.url.replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/');
+        
+        uploadStatus.textContent = 'Saving...';
+        
         // Save video metadata to Gun
-        const videoRef = gun.get('awatch_videos').set({
+        gun.get('awatch_videos').set({
           title: file.name.replace(/\.[^/.]+$/, ""),
-          url: url,
+          url: fileUrl,
           uploader: currentUser.alias,
           uploadedAt: Date.now()
         });
 
         uploadProgress.style.display = 'none';
+        uploadStatus.textContent = '✅ Upload complete!';
         videoFileInput.value = '';
+        
+        setTimeout(() => {
+          uploadStatus.textContent = '';
+        }, 3000);
+        
         loadAllVideos();
 
       } catch (err) {
-        alert('Upload error: ' + err.message);
+        console.error('Upload error:', err);
+        uploadStatus.textContent = '❌ Upload failed: ' + err.message;
         uploadProgress.style.display = 'none';
       }
     });
@@ -225,42 +247,45 @@
     // ── Load & display all videos ──
     function loadAllVideos() {
       videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;">Loading videos...</p>';
+      
       const videosNode = gun.get('awatch_videos');
+      let loaded = false;
 
       videosNode.map().once((data, id) => {
-        if (!data) return;
-        // Re‑render the whole grid whenever any video changes
-        rebuildGrid();
-      });
-
-      // Initial load
-      rebuildGrid();
-    }
-
-    function rebuildGrid() {
-      const videosNode = gun.get('awatch_videos');
-      videosGrid.innerHTML = '';
-      let count = 0;
-      videosNode.map().once((data, id) => {
+        if (!loaded) {
+          videosGrid.innerHTML = '';
+          loaded = true;
+        }
         if (data && data.url) {
-          count++;
-          const card = document.createElement('div');
-          card.className = 'video-card';
-          card.innerHTML = `
-            <div class="thumbnail">▶️</div>
-            <div class="video-info">
-              <div class="video-title">${escapeHtml(data.title)}</div>
-              <div class="video-meta">${escapeHtml(data.uploader || 'Unknown')} • ${timeAgo(data.uploadedAt)}</div>
-            </div>
-          `;
-          card.addEventListener('click', () => playVideo(data.url));
-          videosGrid.appendChild(card);
+          addVideoCard(data);
         }
       });
 
-      if (count === 0) {
-        videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#aaa;">No videos yet. Upload the first one!</p>';
-      }
+      // Timeout: if no videos load after 3 seconds, show empty state
+      setTimeout(() => {
+        if (!loaded) {
+          videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#aaa;">No videos yet. Upload the first one!</p>';
+        }
+      }, 3000);
+    }
+
+    function addVideoCard(data) {
+      // Avoid duplicates
+      const existing = videosGrid.querySelector(`[data-url="${data.url}"]`);
+      if (existing) return;
+
+      const card = document.createElement('div');
+      card.className = 'video-card';
+      card.setAttribute('data-url', data.url);
+      card.innerHTML = `
+        <div class="thumbnail">▶️</div>
+        <div class="video-info">
+          <div class="video-title">${escapeHtml(data.title)}</div>
+          <div class="video-meta">${escapeHtml(data.uploader || 'Unknown')} • ${timeAgo(data.uploadedAt)}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => playVideo(data.url));
+      videosGrid.appendChild(card);
     }
 
     function playVideo(url) {
