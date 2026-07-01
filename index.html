@@ -56,7 +56,6 @@
       opacity: 0.7;
     }
 
-    /* user card */
     .user-card {
       background: #1e1e26;
       margin: 12px 14px 8px;
@@ -135,7 +134,6 @@
       border-radius: 40px;
     }
 
-    /* games list */
     .games-list {
       flex: 1;
       overflow-y: auto;
@@ -229,8 +227,12 @@
     .main-content {
       flex: 1;
       display: flex;
-      flex-direction: column;
       background: #0a0a0e;
+      position: relative;
+    }
+
+    .game-area {
+      flex: 1;
       position: relative;
     }
 
@@ -268,62 +270,52 @@
       opacity: 0.7;
     }
 
-    /* music player bar */
-    .music-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
+    /* ---------- vertical music panel ---------- */
+    .music-panel {
+      width: 80px;
+      min-width: 80px;
       background: #14141c;
-      backdrop-filter: blur(12px);
-      border-top: 1px solid #2a2a30;
-      padding: 6px 20px 10px;
+      border-left: 1px solid #2a2a30;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
+      padding: 20px 8px;
+      gap: 15px;
+      box-shadow: -4px 0 20px #00000070;
       z-index: 20;
-      box-shadow: 0 -4px 20px #00000070;
     }
 
-    .music-bar .track-info {
+    .music-panel .track-icon {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+
+    .music-panel .track-name {
+      font-size: 0.6rem;
+      color: #8d8d99;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      max-height: 120px;
+      overflow: hidden;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .music-panel .music-controls {
       display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 10px;
-      flex: 1 1 180px;
     }
 
-    .music-bar .track-info .icon {
-      font-size: 1.2rem;
-    }
-
-    .music-bar .track-info .name {
-      font-weight: 500;
-      font-size: 0.85rem;
-      color: #cbd5e1;
-    }
-
-    .music-bar .track-info .name small {
-      font-weight: 300;
-      color: #8d8d99;
-      font-size: 0.7rem;
-      margin-left: 6px;
-    }
-
-    .music-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .music-controls button {
+    .music-panel button {
       background: #26262e;
       border: none;
       color: #e1e1e6;
-      width: 34px;
-      height: 34px;
-      border-radius: 40px;
-      font-size: 1rem;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: 0.15s;
       display: flex;
@@ -331,54 +323,70 @@
       justify-content: center;
     }
 
-    .music-controls button:hover {
+    .music-panel button:hover {
       background: #3e3e4a;
-      transform: scale(1.05);
+      transform: scale(1.1);
     }
 
-    .music-controls .play-btn {
+    .music-panel .play-btn {
       background: #4ea8de;
       color: #0b0b0e;
-      width: 40px;
+      width: 44px;
+      height: 44px;
+      font-size: 1rem;
     }
 
-    .music-controls .play-btn:hover {
+    .music-panel .play-btn:hover {
       background: #7bc0f0;
     }
 
-    .music-bar .volume-wrap {
+    .music-panel .volume-wrap {
       display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 8px;
-      flex: 0 1 100px;
     }
 
-    .music-bar input[type="range"] {
-      width: 100%;
-      height: 4px;
+    .music-panel .volume-wrap span {
+      font-size: 0.8rem;
+    }
+
+    .music-panel input[type="range"] {
+      writing-mode: vertical-lr;
+      direction: rtl;
+      height: 80px;
+      width: 4px;
       -webkit-appearance: none;
       background: #2f2f38;
       border-radius: 10px;
       outline: none;
     }
 
-    .music-bar input[type="range"]::-webkit-slider-thumb {
+    .music-panel input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
       background: #4ea8de;
-      border-radius: 20px;
+      border-radius: 50%;
       cursor: pointer;
+    }
+
+    .music-time {
+      font-size: 0.6rem;
+      color: #8d8d99;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
     }
 
     .playtime-badge {
       background: #1e1e28;
-      padding: 2px 14px;
+      padding: 4px 8px;
       border-radius: 40px;
-      font-size: 0.7rem;
+      font-size: 0.6rem;
       color: #aab;
       border: 1px solid #2f2f3a;
-      white-space: nowrap;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
     }
 
     @media (max-width: 720px) {
@@ -386,10 +394,10 @@
         width: 240px;
         min-width: 200px;
       }
-      .music-bar {
-        flex-wrap: wrap;
-        gap: 6px;
-        padding: 6px 12px;
+      .music-panel {
+        width: 60px;
+        min-width: 60px;
+        padding: 15px 5px;
       }
       .user-row input {
         min-width: 70px;
@@ -405,7 +413,6 @@
       <span>· play</span>
     </div>
 
-    <!-- user card -->
     <div class="user-card" id="userCard">
       <div class="user-row">
         <label>👤 user</label>
@@ -438,28 +445,31 @@
   </div>
 
   <div class="main-content">
-    <div class="placeholder" id="placeholderText">
-      <h2>🎯 select a game</h2>
-      <p>launcher · music · profile · playtime</p>
-    </div>
-    <iframe id="game-frame" src="" allow="fullscreen; autoplay; pointer-lock"></iframe>
-
-    <!-- music bar -->
-    <div class="music-bar" id="musicBar">
-      <div class="track-info">
-        <span class="icon">🎵</span>
-        <span class="name">launcher_music.ogg <small>· ambient</small></span>
+    <div class="game-area">
+      <div class="placeholder" id="placeholderText">
+        <h2>🎯 select a game</h2>
+        <p>launcher · music · profile · playtime</p>
       </div>
+      <iframe id="game-frame" src="" allow="fullscreen; autoplay; pointer-lock"></iframe>
+    </div>
+
+    <!-- vertical music panel -->
+    <div class="music-panel" id="musicPanel">
+      <div class="track-icon">🎵</div>
+      <div class="track-name">launcher_music.ogg</div>
+      
       <div class="music-controls">
         <button id="prevTrack" disabled="">⏮</button>
         <button class="play-btn" id="playPauseBtn">▶</button>
         <button id="nextTrack" disabled="">⏭</button>
       </div>
+      
       <div class="volume-wrap">
         <span>🔊</span>
         <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.6">
       </div>
-      <span class="playtime-badge" id="musicTimeDisplay">0:00</span>
+      
+      <span class="music-time" id="musicTimeDisplay">0:00</span>
     </div>
   </div>
 
@@ -467,7 +477,6 @@
     (function() {
       "use strict";
 
-      // ----- DOM refs -----
       const gameFrame = document.getElementById('game-frame');
       const placeholder = document.getElementById('placeholderText');
       const gameBtns = document.querySelectorAll('.game-btn');
@@ -476,7 +485,6 @@
       const playtimeDisplay = document.getElementById('playtimeDisplay');
       const sessionDisplay = document.getElementById('sessionDisplay');
 
-      // ----- music -----
       const audio = new Audio('launcher_music.ogg');
       audio.loop = true;
       audio.volume = 0.6;
@@ -484,7 +492,6 @@
       const volumeSlider = document.getElementById('volumeSlider');
       const musicTimeDisplay = document.getElementById('musicTimeDisplay');
 
-      // ----- state -----
       let currentGame = null;
       let totalPlaytimeSeconds = 0;
       let sessionStart = Date.now();
@@ -492,7 +499,6 @@
       let playtimeInterval = null;
       let musicInterval = null;
 
-      // ----- load stored data -----
       function loadStoredData() {
         try {
           const stored = localStorage.getItem('launcherData');
@@ -531,7 +537,6 @@
         } catch (e) { /* ignore */ }
       }
 
-      // ----- update playtime UI -----
       function updatePlaytimeDisplay() {
         const mins = Math.floor(totalPlaytimeSeconds / 60);
         const secs = Math.floor(totalPlaytimeSeconds % 60);
@@ -540,7 +545,6 @@
         sessionDisplay.textContent = `📊 ${s}s`;
       }
 
-      // ----- track playtime -----
       function startPlaytimeTracking() {
         if (playtimeInterval) clearInterval(playtimeInterval);
         sessionStart = Date.now();
@@ -562,7 +566,6 @@
         saveStoredData();
       });
 
-      // ----- load game -----
       function loadGame(gameUrl, btnElement) {
         if (!gameUrl) return;
         currentGame = gameUrl;
@@ -577,7 +580,6 @@
         saveStoredData();
       }
 
-      // ----- event listeners -----
       gameBtns.forEach(btn => {
         btn.addEventListener('click', function(e) {
           const game = this.dataset.game;
@@ -597,7 +599,6 @@
         saveStoredData();
       });
 
-      // ----- music controls -----
       function updateMusicTimeDisplay() {
         if (audio.duration) {
           const mins = Math.floor(audio.currentTime / 60);
@@ -636,7 +637,6 @@
         audio.play().catch(() => {});
       });
 
-      // ---- init ----
       loadStoredData();
       if (!audio.paused) {
         playPauseBtn.textContent = '⏸';
@@ -649,7 +649,7 @@
         // keep tracking
       });
 
-      console.log('🚀 launcher · music + profile + playtime');
+      console.log('🚀 launcher · music + profile + playtime · vertical panel');
     })();
   </script>
 
