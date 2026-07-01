@@ -90,7 +90,7 @@
 
     // ── CONFIGURATION ──
     const JSONBIN_API_KEY = '$2a$10$xcm/jZksHNFYF.PNCHFY2ue7PbSSpKJnmWUfmU8w7GlQqec0sXuVa';
-    const JSONBIN_BIN_ID = '67a6e3b4ad19ca34f8fc2001';  // NEW BIN - auto-created on first upload
+    const JSONBIN_BIN_ID = '67a6e3b4ad19ca34f8fc2001';
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
     const JSONBIN_HEADERS = {
       'Content-Type': 'application/json',
@@ -235,28 +235,56 @@
       uploadArea.style.display = 'none';
     }
 
+    // ── Ensure bin exists ──
+    async function ensureBinExists() {
+      try {
+        const checkResponse = await fetch(`${JSONBIN_URL}/latest`, {
+          headers: { 'X-Master-Key': JSONBIN_API_KEY }
+        });
+        
+        if (!checkResponse.ok) {
+          // Create new bin
+          console.log('Creating new bin...');
+          const createResponse = await fetch('https://api.jsonbin.io/v3/b', {
+            method: 'POST',
+            headers: JSONBIN_HEADERS,
+            body: JSON.stringify({ videos: [] })
+          });
+          
+          if (createResponse.ok) {
+            const newBin = await createResponse.json();
+            console.log('✅ New bin created:', newBin.metadata.id);
+            // Note: We can't update the BIN_ID const, so we store in localStorage
+            localStorage.setItem('awatch_bin_id', newBin.metadata.id);
+            return newBin.metadata.id;
+          } else {
+            throw new Error('Could not create bin');
+          }
+        }
+        return JSONBIN_BIN_ID;
+      } catch(e) {
+        console.error('Bin check failed:', e);
+        return null;
+      }
+    }
+
     // ── Load videos from jsonbin ──
     async function loadVideosFromBin() {
       syncStatus.textContent = '🔄 Syncing videos...';
       videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;">Loading videos...</p>';
       
       try {
-        const response = await fetch(`${JSONBIN_URL}/latest`, {
+        const binId = localStorage.getItem('awatch_bin_id') || JSONBIN_BIN_ID;
+        const binUrl = `https://api.jsonbin.io/v3/b/${binId}/latest`;
+        
+        const response = await fetch(binUrl, {
           headers: { 'X-Master-Key': JSONBIN_API_KEY }
         });
         
-        if (!response.ok) {
-          // Bin doesn't exist yet - create it on first load
-          if (response.status === 404) {
-            await createEmptyBin();
-            allVideos = [];
-          } else {
-            throw new Error('Failed to load');
-          }
-        } else {
-          const data = await response.json();
-          allVideos = data.record?.videos || [];
-        }
+        if (!response.ok) throw new Error('Failed to load');
+        
+        const data = await response.json();
+        allVideos = data.record?.videos || [];
         
         syncStatus.textContent = '✅ Synced';
         setTimeout(() => { syncStatus.textContent = ''; }, 2000);
@@ -272,19 +300,6 @@
         } else {
           videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#aaa;">Could not load videos. Check your connection.</p>';
         }
-      }
-    }
-
-    async function createEmptyBin() {
-      try {
-        await fetch(JSONBIN_URL, {
-          method: 'PUT',
-          headers: JSONBIN_HEADERS,
-          body: JSON.stringify({ videos: [] })
-        });
-        console.log('✅ Created new bin');
-      } catch(e) {
-        console.error('Failed to create bin:', e);
       }
     }
 
@@ -342,10 +357,10 @@
 
       uploadProgress.style.display = 'block';
       uploadProgress.value = 0;
-      uploadStatus.textContent = 'Uploading to tmpfiles.org...';
+      uploadStatus.textContent = 'Uploading video...';
 
       try {
-        // Step 1: Upload video file
+        // Step 1: Upload video file to tmpfiles.org
         const formData = new FormData();
         formData.append('file', file);
         
@@ -354,47 +369,55 @@
           body: formData
         });
 
-        if (!uploadResponse.ok) throw new Error('Upload failed: ' + uploadResponse.status);
+        if (!uploadResponse.ok) throw new Error('Video upload failed');
         
         const uploadData = await uploadResponse.json();
         const fileUrl = uploadData.data.url.replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/');
         
-        uploadStatus.textContent = 'Syncing to jsonbin...';
+        uploadStatus.textContent = 'Syncing...';
 
-        // Step 2: Add to video list
+        // Step 2: Ensure bin exists
+        const binId = await ensureBinExists();
+        if (!binId) throw new Error('Could not create bin');
+        
+        const binUrl = `https://api.jsonbin.io/v3/b/${binId}`;
+
+        // Step 3: Get current videos
+        let currentVideos = [];
+        try {
+          const getResponse = await fetch(`${binUrl}/latest`, {
+            headers: { 'X-Master-Key': JSONBIN_API_KEY }
+          });
+          if (getResponse.ok) {
+            const getData = await getResponse.json();
+            currentVideos = getData.record?.videos || [];
+          }
+        } catch(e) {
+          currentVideos = [];
+        }
+
+        // Step 4: Add new video
         const newVideo = {
           title: file.name.replace(/\.[^/.]+$/, ""),
           url: fileUrl,
           uploader: currentUser,
           uploadedAt: Date.now()
         };
-
-        // Step 3: Get current videos from bin
-        let currentVideos = [];
-        try {
-          const binResponse = await fetch(`${JSONBIN_URL}/latest`, {
-            headers: { 'X-Master-Key': JSONBIN_API_KEY }
-          });
-          if (binResponse.ok) {
-            const binData = await binResponse.json();
-            currentVideos = binData.record?.videos || [];
-          }
-        } catch(e) {
-          // Bin doesn't exist, start fresh
-        }
-        
         currentVideos.push(newVideo);
 
-        // Step 4: Update bin
-        const updateResponse = await fetch(JSONBIN_URL, {
+        // Step 5: Save to bin
+        const updateResponse = await fetch(binUrl, {
           method: 'PUT',
           headers: JSONBIN_HEADERS,
           body: JSON.stringify({ videos: currentVideos })
         });
 
-        if (!updateResponse.ok) throw new Error('Sync failed: ' + updateResponse.status);
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          throw new Error('Sync failed: ' + updateResponse.status + ' - ' + errorText);
+        }
 
-        // Step 5: Cache locally
+        // Step 6: Cache locally
         allVideos = currentVideos;
         localStorage.setItem('awatch_video_cache', JSON.stringify(allVideos));
 
@@ -408,7 +431,7 @@
 
       } catch (err) {
         console.error('Upload error:', err);
-        uploadStatus.textContent = '❌ Upload failed: ' + err.message;
+        uploadStatus.textContent = '❌ ' + err.message;
         uploadProgress.style.display = 'none';
       }
     });
