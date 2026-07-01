@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -412,8 +413,8 @@
         <button class="save-btn" id="saveUserBtn">save</button>
       </div>
       <div class="stats-mini">
-        <span id="playtimeDisplay">⏱️ 1m 21s</span>
-        <span id="sessionDisplay">📊 76s</span>
+        <span id="playtimeDisplay">⏱️ 1m 33s</span>
+        <span id="sessionDisplay">📊 8s</span>
       </div>
     </div>
 
@@ -431,16 +432,17 @@
       <button class="game-btn" data-game="gm11.html"><span>Street Racer</span><span class="game-genre">3D Racing</span><span class="play-icon">▶</span></button>
       <button class="game-btn" data-game="gm12.html"><span>3D Dino Game</span><span class="game-genre">3D Endless Runner</span><span class="play-icon">▶</span></button>
       <button class="game-btn" data-game="gm13.html"><span>Space Shooter</span><span class="game-genre">3D Space Shooter</span><span class="play-icon">▶</span></button>
-      <button class="game-btn active" data-game="gm14.html"><span>Minecraft Clone</span><span class="game-genre">3D Sandbox</span><span class="play-icon">▶</span></button>
+      <button class="game-btn" data-game="gm14.html"><span>Minecraft Clone</span><span class="game-genre">3D Sandbox</span><span class="play-icon">▶</span></button>
+      <button class="game-btn" data-game="gm18.html"><span>🎬 Awatch</span><span class="game-genre">Video Platform</span><span class="play-icon">▶</span></button>
     </div>
   </div>
 
   <div class="main-content">
-    <div class="placeholder" id="placeholderText" style="display: none;">
+    <div class="placeholder" id="placeholderText">
       <h2>🎯 select a game</h2>
       <p>launcher · music · profile · playtime</p>
     </div>
-    <iframe id="game-frame" src="gm14.html" allow="fullscreen; autoplay; pointer-lock" style="display: block;"></iframe>
+    <iframe id="game-frame" src="" allow="fullscreen; autoplay; pointer-lock"></iframe>
 
     <!-- music bar -->
     <div class="music-bar" id="musicBar">
@@ -457,7 +459,7 @@
         <span>🔊</span>
         <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.6">
       </div>
-      <span class="playtime-badge" id="musicTimeDisplay">0:24</span>
+      <span class="playtime-badge" id="musicTimeDisplay">0:00</span>
     </div>
   </div>
 
