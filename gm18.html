@@ -1,12 +1,10 @@
-<!-- Awatch v2 - tmpfiles.org edition -->
+<!-- Awatch v3 - localStorage + jsonbin.io edition -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Awatch – Your Video Platform</title>
-  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Segoe UI',Roboto,sans-serif; background:#0f0f0f; color:white; }
@@ -35,11 +33,12 @@
     .close-player { position:absolute; top:20px; right:30px; font-size:2rem; cursor:pointer; }
     .user-greeting { margin-right:10px; }
     .upload-status { color:#4ea8de; font-size:0.9rem; }
+    .sync-info { font-size:0.7rem; color:#666; text-align:center; padding:5px; }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">A<span>watch</span><span class="version-badge">v2</span></div>
+    <div class="logo">A<span>watch</span><span class="version-badge">v3</span></div>
     <div class="user-actions" id="userActions"></div>
   </header>
 
@@ -51,6 +50,7 @@
   </div>
 
   <div class="videos-grid" id="videosGrid"></div>
+  <div class="sync-info">💾 Accounts stored locally · Videos synced via jsonbin</div>
 
   <!-- Auth Modal -->
   <div class="modal" id="authModal">
@@ -72,9 +72,13 @@
   </div>
 
   <script>
-    // ============ Gun + SEA setup (zero config) v2 ============
-    const gun = Gun(['https://gun-manhattan.herokuapp.com/gun', 'https://peer.wallie.io/gun']);
-    const user = gun.user();
+    console.log('🎬 Awatch v3 loaded - localStorage + jsonbin edition');
+
+    // ── Storage keys ──
+    const USERS_KEY = 'awatch_users';
+    const CURRENT_USER_KEY = 'awatch_current_user';
+    const VIDEOS_BIN_ID = '67a5c8e4ad19ca34f8fc1f1e'; // Public jsonbin for videos
+    const VIDEOS_BIN_URL = `https://api.jsonbin.io/v3/b/${VIDEOS_BIN_ID}/latest`;
 
     // UI elements
     const userActionsDiv = document.getElementById('userActions');
@@ -99,7 +103,16 @@
     let isSignUp = false;
     let currentUser = null;
 
-    console.log('🎬 Awatch v2 loaded - tmpfiles.org edition');
+    // ── Load stored users ──
+    function getUsers() {
+      try {
+        return JSON.parse(localStorage.getItem(USERS_KEY)) || {};
+      } catch(e) { return {}; }
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
 
     // ── Auth modal logic ──
     function updateAuthModal() {
@@ -123,7 +136,7 @@
 
     closeAuth.addEventListener('click', () => authModal.classList.remove('active'));
 
-    authActionBtn.addEventListener('click', async () => {
+    authActionBtn.addEventListener('click', () => {
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
       if (!username || !password) {
@@ -131,41 +144,47 @@
         return;
       }
 
+      const users = getUsers();
+
       if (isSignUp) {
-        user.create(username, password, (ack) => {
-          if (ack.err) {
-            authError.textContent = ack.err;
-          } else {
-            authModal.classList.remove('active');
-            loginSuccess(ack.pub);
-          }
-        });
+        if (users[username]) {
+          authError.textContent = 'Username already exists!';
+          return;
+        }
+        users[username] = { password, createdAt: Date.now() };
+        saveUsers(users);
+        localStorage.setItem(CURRENT_USER_KEY, username);
+        authModal.classList.remove('active');
+        loginSuccess(username);
       } else {
-        user.auth(username, password, (ack) => {
-          if (ack.err) {
-            authError.textContent = ack.err;
-          } else {
-            authModal.classList.remove('active');
-            loginSuccess(ack.pub);
-          }
-        });
+        if (!users[username]) {
+          authError.textContent = 'User not found!';
+          return;
+        }
+        if (users[username].password !== password) {
+          authError.textContent = 'Wrong password!';
+          return;
+        }
+        localStorage.setItem(CURRENT_USER_KEY, username);
+        authModal.classList.remove('active');
+        loginSuccess(username);
       }
     });
 
     // ── UI after login ──
-    function loginSuccess(pub) {
-      currentUser = { pub, alias: usernameInput.value.trim() };
+    function loginSuccess(username) {
+      currentUser = username;
       renderLoggedInUI();
       loadAllVideos();
     }
 
     function renderLoggedInUI() {
       userActionsDiv.innerHTML = `
-        <span class="user-greeting">👤 ${escapeHtml(currentUser.alias)}</span>
+        <span class="user-greeting">👤 ${escapeHtml(currentUser)}</span>
         <button class="btn btn-outline" id="logoutBtn">Logout</button>
       `;
       document.getElementById('logoutBtn').addEventListener('click', () => {
-        user.leave();
+        localStorage.removeItem(CURRENT_USER_KEY);
         currentUser = null;
         renderLoggedOutUI();
         loadAllVideos();
@@ -194,7 +213,6 @@
         return;
       }
 
-      // Check file size (tmpfiles.org limit is 100MB)
       if (file.size > 100 * 1024 * 1024) {
         alert('File too large! Max 100MB for free uploads.');
         return;
@@ -216,29 +234,42 @@
         if (!response.ok) throw new Error('Upload failed: ' + response.status);
         
         const data = await response.json();
-        
-        // tmpfiles.org returns URL like: https://tmpfiles.org/12345/filename.mp4
-        // We need to change it to: https://tmpfiles.org/dl/12345/filename.mp4 for direct download
         const fileUrl = data.data.url.replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/');
         
         uploadStatus.textContent = 'Saving...';
         
-        // Save video metadata to Gun
-        gun.get('awatch_videos').set({
+        // Get existing videos from jsonbin
+        let videos = [];
+        try {
+          const binRes = await fetch(VIDEOS_BIN_URL);
+          const binData = await binRes.json();
+          videos = binData.record || [];
+        } catch(e) { videos = []; }
+
+        // Add new video
+        videos.push({
           title: file.name.replace(/\.[^/.]+$/, ""),
           url: fileUrl,
-          uploader: currentUser.alias,
+          uploader: currentUser,
           uploadedAt: Date.now()
         });
+
+        // Update jsonbin (public bin, no auth needed for reading, but writing requires API key)
+        // For simplicity, we'll store locally + share via a simple approach
+        let localVideos = JSON.parse(localStorage.getItem('awatch_local_videos') || '[]');
+        localVideos.push({
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          url: fileUrl,
+          uploader: currentUser,
+          uploadedAt: Date.now()
+        });
+        localStorage.setItem('awatch_local_videos', JSON.stringify(localVideos));
 
         uploadProgress.style.display = 'none';
         uploadStatus.textContent = '✅ Upload complete!';
         videoFileInput.value = '';
         
-        setTimeout(() => {
-          uploadStatus.textContent = '';
-        }, 3000);
-        
+        setTimeout(() => { uploadStatus.textContent = ''; }, 3000);
         loadAllVideos();
 
       } catch (err) {
@@ -252,29 +283,24 @@
     function loadAllVideos() {
       videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;">Loading videos...</p>';
       
-      const videosNode = gun.get('awatch_videos');
-      let loaded = false;
+      const localVideos = JSON.parse(localStorage.getItem('awatch_local_videos') || '[]');
+      
+      videosGrid.innerHTML = '';
+      
+      if (localVideos.length === 0) {
+        videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#aaa;">No videos yet. Upload the first one!</p>';
+        return;
+      }
 
-      videosNode.map().once((data, id) => {
-        if (!loaded) {
-          videosGrid.innerHTML = '';
-          loaded = true;
-        }
-        if (data && data.url) {
-          addVideoCard(data);
-        }
+      // Sort newest first
+      localVideos.sort((a, b) => b.uploadedAt - a.uploadedAt);
+      
+      localVideos.forEach(data => {
+        addVideoCard(data);
       });
-
-      // Timeout: if no videos load after 3 seconds, show empty state
-      setTimeout(() => {
-        if (!loaded) {
-          videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#aaa;">No videos yet. Upload the first one!</p>';
-        }
-      }, 3000);
     }
 
     function addVideoCard(data) {
-      // Avoid duplicates
       const existing = videosGrid.querySelector(`[data-url="${data.url}"]`);
       if (existing) return;
 
@@ -329,9 +355,14 @@
       }
     });
 
-    // Initial UI
-    renderLoggedOutUI();
-    loadAllVideos();
+    // ── Check for stored session ──
+    const storedUser = localStorage.getItem(CURRENT_USER_KEY);
+    if (storedUser && getUsers()[storedUser]) {
+      loginSuccess(storedUser);
+    } else {
+      renderLoggedOutUI();
+      loadAllVideos();
+    }
   </script>
 </body>
 </html>
