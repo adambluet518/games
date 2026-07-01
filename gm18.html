@@ -47,7 +47,6 @@
     <div class="user-actions" id="userActions"></div>
   </header>
 
-  <!-- Info notification -->
   <div class="info-notification" id="infoNotification">
     <span class="info-icon">🌐</span>
     <span><strong>Hybrid Mode:</strong> Accounts are per-device, but all videos sync across devices!</span>
@@ -90,10 +89,8 @@
     console.log('🎬 Awatch v4 Hybrid - localStorage + jsonbin sync');
 
     // ── CONFIGURATION ──
-    // This is a PUBLIC jsonbin.io bin - anyone can read/write
-    // If it gets too full or breaks, create a new one at https://jsonbin.io
-    const JSONBIN_API_KEY = '$2a$10$YOUR_API_KEY_HERE'; // Replace with your free API key from jsonbin.io
-    const JSONBIN_BIN_ID = '67a5c8e4ad19ca34f8fc1f1e';
+    const JSONBIN_API_KEY = '$2a$10$OpOMLBz4cO/GiIt1TUNIgOjHFPs2ClTQuSy84L.X.p.aA.StHdR8m';
+    const JSONBIN_BIN_ID = '67a6e3b4ad19ca34f8fc2001';  // NEW BIN - auto-created on first upload
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
     const JSONBIN_HEADERS = {
       'Content-Type': 'application/json',
@@ -248,10 +245,18 @@
           headers: { 'X-Master-Key': JSONBIN_API_KEY }
         });
         
-        if (!response.ok) throw new Error('Failed to load');
-        
-        const data = await response.json();
-        allVideos = data.record?.videos || [];
+        if (!response.ok) {
+          // Bin doesn't exist yet - create it on first load
+          if (response.status === 404) {
+            await createEmptyBin();
+            allVideos = [];
+          } else {
+            throw new Error('Failed to load');
+          }
+        } else {
+          const data = await response.json();
+          allVideos = data.record?.videos || [];
+        }
         
         syncStatus.textContent = '✅ Synced';
         setTimeout(() => { syncStatus.textContent = ''; }, 2000);
@@ -260,7 +265,6 @@
       } catch (err) {
         console.error('Load error:', err);
         syncStatus.textContent = '⚠️ Offline mode - showing cached videos';
-        // Fall back to cached videos
         const cached = localStorage.getItem('awatch_video_cache');
         if (cached) {
           allVideos = JSON.parse(cached);
@@ -268,6 +272,19 @@
         } else {
           videosGrid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#aaa;">Could not load videos. Check your connection.</p>';
         }
+      }
+    }
+
+    async function createEmptyBin() {
+      try {
+        await fetch(JSONBIN_URL, {
+          method: 'PUT',
+          headers: JSONBIN_HEADERS,
+          body: JSON.stringify({ videos: [] })
+        });
+        console.log('✅ Created new bin');
+      } catch(e) {
+        console.error('Failed to create bin:', e);
       }
     }
 
@@ -280,7 +297,6 @@
         return;
       }
 
-      // Sort newest first
       allVideos.sort((a, b) => b.uploadedAt - a.uploadedAt);
       
       allVideos.forEach(data => {
@@ -354,11 +370,19 @@
         };
 
         // Step 3: Get current videos from bin
-        const binResponse = await fetch(`${JSONBIN_URL}/latest`, {
-          headers: { 'X-Master-Key': JSONBIN_API_KEY }
-        });
-        const binData = await binResponse.json();
-        const currentVideos = binData.record?.videos || [];
+        let currentVideos = [];
+        try {
+          const binResponse = await fetch(`${JSONBIN_URL}/latest`, {
+            headers: { 'X-Master-Key': JSONBIN_API_KEY }
+          });
+          if (binResponse.ok) {
+            const binData = await binResponse.json();
+            currentVideos = binData.record?.videos || [];
+          }
+        } catch(e) {
+          // Bin doesn't exist, start fresh
+        }
+        
         currentVideos.push(newVideo);
 
         // Step 4: Update bin
@@ -437,9 +461,7 @@
 
     // Auto-refresh videos every 30 seconds
     setInterval(() => {
-      if (allVideos.length > 0) {
-        loadVideosFromBin();
-      }
+      loadVideosFromBin();
     }, 30000);
   </script>
 </body>
